@@ -1,3 +1,6 @@
+require "net/http"
+require "uri"
+
 class CalendarDay < ApplicationRecord
   belongs_to :calendar
 
