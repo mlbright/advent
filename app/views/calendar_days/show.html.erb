@@ -1,0 +1,79 @@
+<div class="calendar-day-show">
+  <div class="day-header">
+    <h1>December <%= @day.day_number %>, <%= @calendar.year %></h1>
+    <p class="calendar-title">From: <%= @calendar.title %></p>
+    
+    <% if viewing_as_creator? %>
+      <div class="alert alert-info">
+        <strong>Creator Preview</strong> - This is how the recipient will see this day.
+      </div>
+    <% end %>
+  </div>
+
+  <div class="day-navigation">
+    <% prev_day = @calendar.calendar_days.where("day_number < ?", @day.day_number).order(day_number: :desc).first %>
+    <% next_day = @calendar.calendar_days.where("day_number > ?", @day.day_number).order(day_number: :asc).first %>
+    
+    <% if prev_day && @calendar.day_unlocked_for?(prev_day.day_number, current_user) %>
+      <%= link_to "← Day #{prev_day.day_number}", calendar_calendar_day_path(@calendar, prev_day.day_number), class: "btn btn-sm" %>
+    <% else %>
+      <span class="btn btn-sm disabled">← Previous</span>
+    <% end %>
+    
+    <%= link_to "Back to Calendar", calendar_path(@calendar), class: "btn btn-sm" %>
+    
+    <% if next_day && @calendar.day_unlocked_for?(next_day.day_number, current_user) %>
+      <%= link_to "Day #{next_day.day_number} →", calendar_calendar_day_path(@calendar, next_day.day_number), class: "btn btn-sm" %>
+    <% else %>
+      <span class="btn btn-sm disabled">Next →</span>
+    <% end %>
+  </div>
+
+  <% if viewing_as_creator? %>
+    <div class="creator-actions">
+      <%= link_to "Edit This Day", edit_calendar_calendar_day_path(@calendar, @day.day_number), class: "btn btn-primary" %>
+    </div>
+  <% end %>
+
+  <div class="day-content">
+    <% if @content_elements.any? %>
+      <% @content_elements.each do |element| %>
+        <div class="content-element content-element-<%= element.element_type %>">
+          <% case element.element_type %>
+          <% when 'text' %>
+            <div class="text-content">
+              <%= simple_format(element.text_content) %>
+            </div>
+          
+          <% when 'image' %>
+            <div class="image-content">
+              <%= UrlEmbedder.embed(element.url, 'image') %>
+              <% if element.description.present? %>
+                <p class="content-description"><%= element.description %></p>
+              <% end %>
+            </div>
+          
+          <% when 'video' %>
+            <div class="video-content">
+              <%= UrlEmbedder.embed(element.url, 'video') %>
+              <% if element.description.present? %>
+                <p class="content-description"><%= element.description %></p>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    <% else %>
+      <% if viewing_as_creator? %>
+        <div class="empty-state">
+          <p>This day has no content yet.</p>
+          <%= link_to "Add Content", edit_calendar_calendar_day_path(@calendar, @day.day_number), class: "btn btn-primary" %>
+        </div>
+      <% else %>
+        <div class="empty-state">
+          <p>No content available for this day.</p>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+</div>

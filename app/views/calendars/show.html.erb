@@ -1,0 +1,80 @@
+<div class="calendar-show">
+  <div class="calendar-header">
+    <h1><%= @calendar.title %></h1>
+    <% if @calendar.description.present? %>
+      <p class="calendar-tagline"><%= @calendar.description %></p>
+    <% end %>
+    
+    <div class="calendar-meta">
+      <p>
+        <strong>Year:</strong> <%= @calendar.year %> | 
+        <strong><%= viewing_as_creator? ? "For" : "From" %>:</strong> 
+        <%= viewing_as_creator? ? @calendar.recipient.email : @calendar.creator.email %>
+      </p>
+    </div>
+    
+    <% if viewing_as_creator? %>
+      <div class="alert alert-info creator-preview">
+        <strong>Creator Preview Mode</strong> - All days are unlocked for you to edit and preview.
+      </div>
+      <div class="calendar-actions">
+        <%= link_to "Edit Calendar", edit_calendar_path(@calendar), class: "btn btn-sm" %>
+        <%= link_to "Back to My Calendars", calendars_path, class: "btn btn-sm" %>
+      </div>
+    <% else %>
+      <%= link_to "Back to My Calendars", calendars_path, class: "btn btn-sm" %>
+    <% end %>
+  </div>
+
+  <% if Time.zone.now.month == 12 || viewing_as_creator? %>
+    <% countdown = (Date.new(@calendar.year, 12, 25) - Time.zone.today).to_i %>
+    <% if countdown >= 0 && Time.zone.now.year == @calendar.year %>
+      <div class="countdown">
+        <strong><%= pluralize(countdown, 'day') %></strong> until Christmas! 🎄
+      </div>
+    <% end %>
+  <% end %>
+
+  <div class="calendar-grid">
+    <% @calendar_days.each do |day| %>
+      <% 
+        unlocked = @calendar.day_unlocked_for?(day.day_number, current_user)
+        viewed = CalendarView.exists?(calendar_id: @calendar.id, user_id: current_user.id, day_number: day.day_number)
+        has_content = day.content_elements.any?
+        day_date = Date.new(@calendar.year, 12, day.day_number)
+      %>
+      
+      <div class="day-card <%= unlocked ? 'unlocked' : 'locked' %> <%= viewed ? 'viewed' : '' %> <%= !has_content && viewing_as_creator? ? 'empty' : '' %>">
+        <% if unlocked %>
+          <%= link_to calendar_calendar_day_path(@calendar, day.day_number), class: "day-link" do %>
+            <div class="day-number"><%= day.day_number %></div>
+            <div class="day-date"><%= day_date.strftime("%b %d") %></div>
+            <% if viewed %>
+              <div class="viewed-icon">✓</div>
+            <% end %>
+            <% if viewing_as_creator? %>
+              <div class="day-status">
+                <% if has_content %>
+                  <%= pluralize(day.content_elements.count, 'element') %>
+                <% else %>
+                  <span class="text-muted">Empty</span>
+                <% end %>
+              </div>
+            <% end %>
+          <% end %>
+          <% if viewing_as_creator? %>
+            <div class="day-actions">
+              <%= link_to "Edit", edit_calendar_calendar_day_path(@calendar, day.day_number), class: "btn btn-xs" %>
+            </div>
+          <% end %>
+        <% else %>
+          <div class="day-locked-content">
+            <div class="day-number"><%= day.day_number %></div>
+            <div class="day-date"><%= day_date.strftime("%b %d") %></div>
+            <div class="lock-icon">🔒</div>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>

@@ -1,0 +1,55 @@
+<div class="calendars-index">
+  <div class="page-header">
+    <h1>My Advent Calendars</h1>
+    <%= link_to "Create New Calendar", new_calendar_path, class: "btn btn-primary" %>
+  </div>
+
+  <section class="calendar-section">
+    <h2>Calendars For Me</h2>
+    <% if @received_calendars.any? %>
+      <% @received_calendars.each do |year, calendars| %>
+        <h3><%= year %></h3>
+        <div class="calendar-list">
+          <% calendars.each do |calendar| %>
+            <div class="calendar-card">
+              <h4><%= link_to calendar.title, calendar_path(calendar) %></h4>
+              <p class="calendar-meta">From: <%= calendar.creator.email %></p>
+              <% if calendar.description.present? %>
+                <p class="calendar-description"><%= calendar.description %></p>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    <% else %>
+      <p class="empty-state">No calendars have been created for you yet.</p>
+    <% end %>
+  </section>
+
+  <section class="calendar-section">
+    <h2>Calendars I Created</h2>
+    <% if @created_calendars.any? %>
+      <% @created_calendars.each do |year, calendars| %>
+        <h3><%= year %></h3>
+        <div class="calendar-list">
+          <% calendars.each do |calendar| %>
+            <div class="calendar-card">
+              <h4><%= link_to calendar.title, calendar_path(calendar) %></h4>
+              <p class="calendar-meta">For: <%= calendar.recipient.email %></p>
+              <% if calendar.description.present? %>
+                <p class="calendar-description"><%= calendar.description %></p>
+              <% end %>
+              <div class="calendar-actions">
+                <%= link_to "Edit", edit_calendar_path(calendar), class: "btn btn-sm" %>
+                <%= button_to "Delete", calendar_path(calendar), method: :delete, 
+                    data: { confirm: "Are you sure?" }, class: "btn btn-sm btn-danger" %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    <% else %>
+      <p class="empty-state">You haven't created any calendars yet.</p>
+    <% end %>
+  </section>
+</div>

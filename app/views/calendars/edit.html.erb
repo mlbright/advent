@@ -1,0 +1,45 @@
+<div class="calendar-form">
+  <h1>Edit Calendar</h1>
+
+  <%= form_with model: @calendar, local: true do |form| %>
+    <% if @calendar.errors.any? %>
+      <div class="alert alert-danger">
+        <h3><%= pluralize(@calendar.errors.count, "error") %> prohibited this calendar from being saved:</h3>
+        <ul>
+          <% @calendar.errors.full_messages.each do |message| %>
+            <li><%= message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <div class="form-group">
+      <%= form.label :title %>
+      <%= form.text_field :title, required: true, class: "form-control" %>
+    </div>
+
+    <div class="form-group">
+      <%= form.label :description, "Tagline or Description (optional)" %>
+      <%= form.text_area :description, rows: 3, class: "form-control" %>
+    </div>
+
+    <div class="form-group">
+      <%= form.label :recipient_id, "Calendar For" %>
+      <%= form.collection_select :recipient_id, @users, :id, :email, 
+          {}, { required: true, class: "form-control" } %>
+    </div>
+
+    <div class="form-group">
+      <%= form.label :year %>
+      <%= form.number_field :year, required: true, class: "form-control", 
+          min: 2025 %>
+      <small class="form-text">Must be 2025 or later</small>
+    </div>
+
+    <div class="form-actions">
+      <%= form.submit "Update Calendar", class: "btn btn-primary" %>
+      <%= link_to "Cancel", @calendar, class: "btn btn-secondary" %>
+      <%= link_to "Back to Calendars", calendars_path, class: "btn btn-secondary" %>
+    </div>
+  <% end %>
+</div>

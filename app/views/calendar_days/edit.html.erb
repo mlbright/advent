@@ -1,0 +1,98 @@
+<div class="calendar-day-edit">
+  <h1>Edit Day <%= @day.day_number %> - <%= @calendar.title %></h1>
+  <p class="form-help">Add text, images, and videos to this day. Content will appear in the order listed.</p>
+
+  <%= form_with model: @day, url: calendar_calendar_day_path(@calendar, @day.day_number), method: :patch, local: true do |form| %>
+    <% if @day.errors.any? %>
+      <div class="alert alert-danger">
+        <h3><%= pluralize(@day.errors.count, "error") %> prohibited this day from being saved:</h3>
+        <ul>
+          <% @day.errors.full_messages.each do |message| %>
+            <li><%= message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <div id="content-elements">
+      <%= form.fields_for :content_elements do |element_form| %>
+        <div class="content-element-form" data-element-type="<%= element_form.object.element_type %>">
+          <div class="element-header">
+            <h3>
+              Content Element <%= element_form.object.position || 'New' %>
+              <span class="element-type-badge"><%= element_form.object.element_type&.titleize || 'New' %></span>
+            </h3>
+            <%= element_form.check_box :_destroy %>
+            <%= element_form.label :_destroy, "Remove" %>
+          </div>
+
+          <%= element_form.hidden_field :position %>
+          <%= element_form.hidden_field :id if element_form.object.persisted? %>
+
+          <div class="form-group">
+            <%= element_form.label :element_type, "Type" %>
+            <%= element_form.select :element_type, 
+                [['Text', 'text'], ['Image', 'image'], ['Video', 'video']], 
+                {}, { class: "form-control element-type-select" } %>
+          </div>
+
+          <div class="form-group text-field">
+            <%= element_form.label :text_content, "Text Content" %>
+            <%= element_form.text_area :text_content, rows: 5, class: "form-control" %>
+          </div>
+
+          <div class="form-group url-field">
+            <%= element_form.label :url, "URL" %>
+            <%= element_form.url_field :url, class: "form-control", 
+                placeholder: "https://youtube.com/watch?v=... or https://example.com/image.jpg" %>
+            <small class="form-text">Supported: YouTube, Vimeo videos, and image URLs</small>
+          </div>
+
+          <div class="form-group description-field">
+            <%= element_form.label :description, "Description/Caption (optional)" %>
+            <%= element_form.text_area :description, rows: 2, class: "form-control" %>
+          </div>
+
+          <hr>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="form-actions">
+      <%= form.submit "Save Day Content", class: "btn btn-primary" %>
+      <%= link_to "Preview Day", calendar_calendar_day_path(@calendar, @day.day_number), class: "btn btn-secondary" %>
+      <%= link_to "Back to Calendar", calendar_path(@calendar), class: "btn btn-secondary" %>
+    </div>
+  <% end %>
+
+  <div class="add-element-section">
+    <h3>Add New Element</h3>
+    <%= form_with model: @day, url: calendar_calendar_day_path(@calendar, @day.day_number), method: :patch, local: true do |form| %>
+      <%= form.fields_for :content_elements, @day.content_elements.build do |element_form| %>
+        <div class="form-group">
+          <%= element_form.label :element_type, "Type" %>
+          <%= element_form.select :element_type, 
+              [['Text', 'text'], ['Image', 'image'], ['Video', 'video']], 
+              { prompt: "Select type..." }, { class: "form-control", required: true } %>
+        </div>
+
+        <div class="form-group">
+          <%= element_form.label :text_content, "Text Content" %>
+          <%= element_form.text_area :text_content, rows: 5, class: "form-control" %>
+        </div>
+
+        <div class="form-group">
+          <%= element_form.label :url, "URL" %>
+          <%= element_form.url_field :url, class: "form-control" %>
+        </div>
+
+        <div class="form-group">
+          <%= element_form.label :description, "Description (optional)" %>
+          <%= element_form.text_area :description, rows: 2, class: "form-control" %>
+        </div>
+
+        <%= form.submit "Add Element", class: "btn btn-success" %>
+      <% end %>
+    <% end %>
+  </div>
+</div>
