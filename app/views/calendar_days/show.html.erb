@@ -1,6 +1,9 @@
 <div class="calendar-day-show">
   <div class="day-header">
     <h1>December <%= @day.day_number %>, <%= @calendar.year %></h1>
+    <% if @day.title.present? %>
+      <h2 class="day-title"><%= @day.title %></h2>
+    <% end %>
     <p class="calendar-title">From: <%= @calendar.title %></p>
     
     <% if viewing_as_creator? %>
@@ -36,33 +39,24 @@
   <% end %>
 
   <div class="day-content">
-    <% if @content_elements.any? %>
-      <% @content_elements.each do |element| %>
-        <div class="content-element content-element-<%= element.element_type %>">
-          <% case element.element_type %>
-          <% when 'text' %>
-            <div class="text-content">
-              <%= simple_format(element.text_content) %>
-            </div>
-          
-          <% when 'image' %>
-            <div class="image-content">
-              <%= UrlEmbedder.embed(element.url, 'image') %>
-              <% if element.description.present? %>
-                <p class="content-description"><%= element.description %></p>
-              <% end %>
-            </div>
-          
-          <% when 'video' %>
-            <div class="video-content">
-              <%= UrlEmbedder.embed(element.url, 'video') %>
-              <% if element.description.present? %>
-                <p class="content-description"><%= element.description %></p>
-              <% end %>
-            </div>
-          <% end %>
-        </div>
-      <% end %>
+    <% if @day.has_content? %>
+      <div class="content-item">
+        <% if @day.content_type == 'image' %>
+          <div class="image-content">
+            <%= UrlEmbedder.embed(@day.url, 'image') %>
+          </div>
+        <% elsif @day.content_type == 'video' %>
+          <div class="video-content">
+            <%= UrlEmbedder.embed(@day.url, 'video') %>
+          </div>
+        <% end %>
+        
+        <% if @day.description.present? %>
+          <div class="content-description">
+            <%= simple_format(@day.description) %>
+          </div>
+        <% end %>
+      </div>
     <% else %>
       <% if viewing_as_creator? %>
         <div class="empty-state">

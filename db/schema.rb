@@ -10,12 +10,16 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_11_22_201846) do
+ActiveRecord::Schema[8.1].define(version: 2025_11_23_152827) do
   create_table "calendar_days", force: :cascade do |t|
     t.integer "calendar_id", null: false
+    t.string "content_type"
     t.datetime "created_at", null: false
     t.integer "day_number", null: false
+    t.text "description"
+    t.string "title"
     t.datetime "updated_at", null: false
+    t.string "url"
     t.index ["calendar_id", "day_number"], name: "index_calendar_days_on_calendar_id_and_day_number", unique: true
     t.index ["calendar_id"], name: "index_calendar_days_on_calendar_id"
   end
@@ -41,19 +45,6 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_22_201846) do
     t.index ["creator_id", "recipient_id", "year"], name: "index_calendars_on_creator_recipient_year", unique: true
     t.index ["creator_id"], name: "index_calendars_on_creator_id"
     t.index ["recipient_id"], name: "index_calendars_on_recipient_id"
-  end
-
-  create_table "content_elements", force: :cascade do |t|
-    t.integer "calendar_day_id", null: false
-    t.datetime "created_at", null: false
-    t.text "description"
-    t.string "element_type", null: false
-    t.integer "position", null: false
-    t.text "text_content"
-    t.datetime "updated_at", null: false
-    t.string "url"
-    t.index ["calendar_day_id", "position"], name: "index_content_elements_on_calendar_day_id_and_position"
-    t.index ["calendar_day_id"], name: "index_content_elements_on_calendar_day_id"
   end
 
   create_table "users", force: :cascade do |t|

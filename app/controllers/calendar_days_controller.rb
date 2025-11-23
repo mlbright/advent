@@ -6,8 +6,6 @@ class CalendarDaysController < ApplicationController
   before_action :check_day_unlocked, only: [ :show ]
 
   def show
-    @content_elements = @day.content_elements.order(:position)
-
     # Record the view if recipient is viewing
     if @calendar.recipient == current_user
       CalendarView.find_or_create_by(
@@ -19,7 +17,6 @@ class CalendarDaysController < ApplicationController
   end
 
   def edit
-    @day.content_elements.build if @day.content_elements.empty?
   end
 
   def update
@@ -59,8 +56,6 @@ class CalendarDaysController < ApplicationController
   end
 
   def calendar_day_params
-    params.require(:calendar_day).permit(
-      content_elements_attributes: [ :id, :element_type, :text_content, :url, :description, :position, :_destroy ]
-    )
+    params.require(:calendar_day).permit(:content_type, :title, :description, :url)
   end
 end

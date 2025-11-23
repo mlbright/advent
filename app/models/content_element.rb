@@ -1,7 +1,7 @@
 class ContentElement < ApplicationRecord
   belongs_to :calendar_day
 
-  enum element_type: { text: "text", image: "image", video: "video" }
+  enum :element_type, { text: "text", image: "image", video: "video" }
 
   validates :element_type, presence: true, inclusion: { in: %w[text image video] }
   validates :position, presence: true, numericality: { only_integer: true, greater_than: 0 }

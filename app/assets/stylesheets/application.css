@@ -488,6 +488,13 @@ body {
   color: #2c5f2d;
 }
 
+.day-title {
+  font-size: 1.5rem;
+  color: #97233f;
+  margin: 1rem 0;
+  font-weight: 600;
+}
+
 .calendar-title {
   font-size: 1.125rem;
   color: #666;
@@ -514,11 +521,11 @@ body {
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.content-element {
+.content-item {
   margin-bottom: 2rem;
 }
 
-.content-element:last-child {
+.content-item:last-child {
   margin-bottom: 0;
 }
 
@@ -528,11 +535,13 @@ body {
 }
 
 .content-description {
-  margin-top: 1rem;
-  padding: 1rem;
+  margin-top: 1.5rem;
+  padding: 1.5rem;
   background-color: #f8f9fa;
   border-left: 4px solid #97233f;
-  font-style: italic;
+  font-size: 1.125rem;
+  line-height: 1.8;
+  border-radius: 4px;
 }
 
 /* Embedded Content */

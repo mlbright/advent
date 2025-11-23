@@ -1,17 +1,4 @@
 Rails.application.routes.draw do
-  get "calendar_views/create"
-  get "content_elements/create"
-  get "content_elements/update"
-  get "content_elements/destroy"
-  get "calendar_days/show"
-  get "calendar_days/edit"
-  get "calendar_days/update"
-  get "calendars/index"
-  get "calendars/show"
-  get "calendars/new"
-  get "calendars/create"
-  get "calendars/edit"
-  get "calendars/update"
   # Authentication routes
   get "login", to: "sessions#new"
   post "login", to: "sessions#create"
@@ -21,9 +8,6 @@ Rails.application.routes.draw do
   resources :calendars do
     resources :calendar_days, param: :day_number, only: [ :show, :edit, :update ]
   end
-
-  # Content element routes
-  resources :content_elements, only: [ :create, :update, :destroy ]
 
   # Calendar view tracking
   resources :calendar_views, only: [ :create ]

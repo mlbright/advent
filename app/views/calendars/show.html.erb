@@ -30,24 +30,24 @@
     <% countdown = (Date.new(@calendar.year, 12, 25) - Time.zone.today).to_i %>
     <% if countdown >= 0 && Time.zone.now.year == @calendar.year %>
       <div class="countdown">
-        <strong><%= pluralize(countdown, 'day') %></strong> until Christmas! 🎄
+        <strong><%= countdown %> <%= countdown == 1 ? 'day' : 'days' %></strong> until Christmas! 🎄
       </div>
     <% end %>
   <% end %>
 
   <div class="calendar-grid">
-    <% @calendar_days.each do |day| %>
+    <% @calendar_days.each do |calendar_day| %>
       <% 
-        unlocked = @calendar.day_unlocked_for?(day.day_number, current_user)
-        viewed = CalendarView.exists?(calendar_id: @calendar.id, user_id: current_user.id, day_number: day.day_number)
-        has_content = day.content_elements.any?
-        day_date = Date.new(@calendar.year, 12, day.day_number)
+        unlocked = @calendar.day_unlocked_for?(calendar_day.day_number, current_user)
+        viewed = CalendarView.where(calendar_id: @calendar.id, user_id: current_user.id, day_number: calendar_day.day_number).exists?
+        has_content = calendar_day.has_content?
+        day_date = Date.new(@calendar.year, 12, calendar_day.day_number)
       %>
       
       <div class="day-card <%= unlocked ? 'unlocked' : 'locked' %> <%= viewed ? 'viewed' : '' %> <%= !has_content && viewing_as_creator? ? 'empty' : '' %>">
         <% if unlocked %>
-          <%= link_to calendar_calendar_day_path(@calendar, day.day_number), class: "day-link" do %>
-            <div class="day-number"><%= day.day_number %></div>
+          <%= link_to calendar_calendar_day_path(@calendar, calendar_day.day_number), class: "day-link" do %>
+            <div class="day-number"><%= calendar_day.day_number %></div>
             <div class="day-date"><%= day_date.strftime("%b %d") %></div>
             <% if viewed %>
               <div class="viewed-icon">✓</div>
@@ -55,7 +55,7 @@
             <% if viewing_as_creator? %>
               <div class="day-status">
                 <% if has_content %>
-                  <%= pluralize(day.content_elements.count, 'element') %>
+                  <%= calendar_day.content_type&.titleize %>
                 <% else %>
                   <span class="text-muted">Empty</span>
                 <% end %>
@@ -64,12 +64,12 @@
           <% end %>
           <% if viewing_as_creator? %>
             <div class="day-actions">
-              <%= link_to "Edit", edit_calendar_calendar_day_path(@calendar, day.day_number), class: "btn btn-xs" %>
+              <%= link_to "Edit", edit_calendar_calendar_day_path(@calendar, calendar_day.day_number), class: "btn btn-xs" %>
             </div>
           <% end %>
         <% else %>
           <div class="day-locked-content">
-            <div class="day-number"><%= day.day_number %></div>
+            <div class="day-number"><%= calendar_day.day_number %></div>
             <div class="day-date"><%= day_date.strftime("%b %d") %></div>
             <div class="lock-icon">🔒</div>
           </div>
