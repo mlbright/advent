@@ -1,5 +1,5 @@
 <div class="calendar-form">
-  <h1>Edit Calendar</h1>
+  <h1>Edit Calendar Details</h1>
 
   <%= form_with model: @calendar, local: true do |form| %>
     <% if @calendar.errors.any? %>
@@ -37,7 +37,7 @@
     </div>
 
     <div class="form-actions">
-      <%= form.submit "Update Calendar", class: "btn btn-primary" %>
+      <%= form.submit "Update Calendar Details", class: "btn btn-primary" %>
       <%= link_to "Cancel", @calendar, class: "btn btn-secondary" %>
       <%= link_to "Back to Calendars", calendars_path, class: "btn btn-secondary" %>
     </div>
