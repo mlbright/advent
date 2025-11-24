@@ -20,6 +20,20 @@ class CalendarDaysController < ApplicationController
   end
 
   def update
+    # Auto-correct content_type if a file is uploaded that doesn't match
+    if params[:calendar_day][:image_file].present?
+      params[:calendar_day][:content_type] = "image"
+    elsif params[:calendar_day][:video_file].present?
+      params[:calendar_day][:content_type] = "video"
+    end
+
+    # Only purge opposite-type attachments if NOT uploading a new file in this request
+    if params[:calendar_day][:content_type] == "image" && @day.video_file.attached? && !params[:calendar_day][:image_file].present?
+      @day.video_file.purge
+    elsif params[:calendar_day][:content_type] == "video" && @day.image_file.attached? && !params[:calendar_day][:video_file].present?
+      @day.image_file.purge
+    end
+
     if @day.update(calendar_day_params)
       redirect_to calendar_calendar_day_path(@calendar, @day.day_number), notice: "Day was successfully updated."
     else
@@ -30,21 +44,17 @@ class CalendarDaysController < ApplicationController
   def delete_attachment
     attachment_type = params[:attachment_type]
 
-    begin
-      if attachment_type == "image" && @day.image_file.attached?
-        @day.image_file.purge
-        flash[:notice] = "Image deleted successfully."
-      elsif attachment_type == "video" && @day.video_file.attached?
-        @day.video_file.purge
-        flash[:notice] = "Video deleted successfully."
-      else
-        flash[:alert] = "No attachment found to delete."
-      end
-    rescue => e
-      flash[:alert] = "Error deleting file: #{e.message}"
+    if attachment_type == "image" && @day.image_file.attached?
+      @day.image_file.purge
+      flash[:notice] = "Image deleted successfully."
+    elsif attachment_type == "video" && @day.video_file.attached?
+      @day.video_file.purge
+      flash[:notice] = "Video deleted successfully."
+    else
+      flash[:alert] = "No attachment found to delete."
     end
 
-    redirect_to edit_calendar_calendar_day_path(@calendar, @day.day_number)
+    redirect_to edit_calendar_calendar_day_path(@calendar, @day.day_number), status: :see_other
   end
 
   private

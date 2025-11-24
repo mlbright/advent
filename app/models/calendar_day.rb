@@ -14,8 +14,8 @@ class CalendarDay < ApplicationRecord
   validates :day_number, uniqueness: { scope: :calendar_id }
   validates :content_type, inclusion: { in: %w[image video] }, allow_nil: true
 
-  # Validate that either URL or file is present
-  validate :content_source_present, if: -> { content_type.present? }
+  # Validate that only one content source is present (but allow none)
+  validate :only_one_content_source
   validates :url, format: { with: URI::DEFAULT_PARSER.make_regexp(%w[http https]), message: "must be a valid URL" }, if: -> { url.present? }
 
   # Custom file validations
@@ -38,9 +38,16 @@ class CalendarDay < ApplicationRecord
 
   private
 
-  def content_source_present
-    unless url.present? || has_attached_file?
-      errors.add(:base, "Please provide either a URL or upload a file")
+  def only_one_content_source
+    sources = []
+    sources << "URL" if url.present? && !url.blank?
+    sources << "image upload" if image_file.attached?
+    sources << "video upload" if video_file.attached?
+
+    # Only validate if we actually have multiple sources
+    # Skip if we're in the process of updating (sources might be transitioning)
+    if sources.length > 1
+      errors.add(:base, "You can only have one content source. Please use either a URL, an image upload, or a video upload - not multiple.")
     end
   end
 
