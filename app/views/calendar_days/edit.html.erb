@@ -24,15 +24,46 @@
       <%= form.select :content_type, 
           [['Image', 'image'], ['Video', 'video']], 
           { include_blank: 'Select type...' }, 
-          { class: "form-control", required: true } %>
+          { class: "form-control", required: true, id: "content_type_select" } %>
     </div>
 
-    <div class="form-group">
-      <%= form.label :url, "URL" %>
+    <div class="form-group" id="url_group">
+      <%= form.label :url, "URL (optional if uploading file)" %>
       <%= form.url_field :url, class: "form-control", 
-          placeholder: "https://youtube.com/watch?v=... or https://example.com/image.jpg",
-          required: true %>
+          placeholder: "https://youtube.com/watch?v=... or https://example.com/image.jpg" %>
       <small class="form-text">Supported: YouTube, Vimeo videos, and image URLs (JPG, PNG, GIF, WEBP)</small>
+    </div>
+
+    <div class="form-group" id="image_upload_group" style="display: none;">
+      <%= form.label :image_file, "Or Upload Image" %>
+      <%= form.file_field :image_file, class: "form-control", accept: "image/jpeg,image/jpg,image/png,image/gif,image/webp" %>
+      <small class="form-text">Accepted formats: JPEG, PNG, GIF, WEBP (max 10MB)</small>
+      <% if @day.image_file.attached? %>
+        <div class="current-file-info">
+          <p class="current-file">Current file: <%= @day.image_file.filename %> (<%= number_to_human_size(@day.image_file.byte_size) %>)</p>
+          <%= button_to "Delete Uploaded File", 
+              delete_attachment_calendar_calendar_day_path(@calendar, @day.day_number, attachment_type: "image"), 
+              method: :delete, 
+              class: "btn btn-danger btn-sm", 
+              form: { data: { turbo_confirm: "Are you sure you want to delete this file?" } } %>
+        </div>
+      <% end %>
+    </div>
+    
+    <div class="form-group" id="video_upload_group" style="display: none;">
+      <%= form.label :video_file, "Or Upload Video" %>
+      <%= form.file_field :video_file, class: "form-control", accept: "video/mp4,video/quicktime,video/x-msvideo,video/webm,video/ogg" %>
+      <small class="form-text">Accepted formats: MP4, MOV, AVI, WEBM, OGG (max 100MB)</small>
+      <% if @day.video_file.attached? %>
+        <div class="current-file-info">
+          <p class="current-file">Current file: <%= @day.video_file.filename %> (<%= number_to_human_size(@day.video_file.byte_size) %>)</p>
+          <%= button_to "Delete Uploaded File", 
+              delete_attachment_calendar_calendar_day_path(@calendar, @day.day_number, attachment_type: "video"), 
+              method: :delete, 
+              class: "btn btn-danger btn-sm", 
+              form: { data: { turbo_confirm: "Are you sure you want to delete this file?" } } %>
+        </div>
+      <% end %>
     </div>
 
     <div class="form-group">
@@ -43,23 +74,24 @@
 
     <div class="form-actions">
       <%= form.submit "Save Day Content", class: "btn btn-primary" %>
-      <% if @day.has_content? %>
-        <%= link_to "Preview Day", calendar_calendar_day_path(@calendar, @day.day_number), class: "btn btn-secondary" %>
-      <% end %>
       <%= link_to "Back to Calendar", calendar_path(@calendar), class: "btn btn-secondary" %>
     </div>
   <% end %>
 
-  <% if @day.has_content? %>
-    <div class="current-content">
-      <h3>Current Content Preview</h3>
-      <div class="content-preview">
-        <% if @day.content_type == 'image' %>
-          <%= UrlEmbedder.embed(@day.url, 'image') %>
-        <% elsif @day.content_type == 'video' %>
-          <%= UrlEmbedder.embed(@day.url, 'video') %>
-        <% end %>
-      </div>
-    </div>
-  <% end %>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const contentTypeSelect = document.getElementById('content_type_select');
+      const imageUploadGroup = document.getElementById('image_upload_group');
+      const videoUploadGroup = document.getElementById('video_upload_group');
+      
+      function updateFileFields() {
+        const contentType = contentTypeSelect.value;
+        imageUploadGroup.style.display = contentType === 'image' ? 'block' : 'none';
+        videoUploadGroup.style.display = contentType === 'video' ? 'block' : 'none';
+      }
+      
+      contentTypeSelect.addEventListener('change', updateFileFields);
+      updateFileFields(); // Initialize on page load
+    });
+  </script>
 </div>

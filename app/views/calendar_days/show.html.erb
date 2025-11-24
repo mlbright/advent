@@ -43,11 +43,19 @@
       <div class="content-item">
         <% if @day.content_type == 'image' %>
           <div class="image-content">
-            <%= UrlEmbedder.embed(@day.url, 'image') %>
+            <% if @day.image_file.attached? %>
+              <%= image_tag @day.image_file, alt: @day.title, style: "max-width: 100%; height: auto; border-radius: 8px;" %>
+            <% elsif @day.url.present? %>
+              <%= UrlEmbedder.embed(@day.url, 'image') %>
+            <% end %>
           </div>
         <% elsif @day.content_type == 'video' %>
           <div class="video-content">
-            <%= UrlEmbedder.embed(@day.url, 'video') %>
+            <% if @day.video_file.attached? %>
+              <%= video_tag @day.video_file, controls: true, style: "max-width: 100%; height: auto; border-radius: 8px;" %>
+            <% elsif @day.url.present? %>
+              <%= UrlEmbedder.embed(@day.url, 'video') %>
+            <% end %>
           </div>
         <% end %>
         
@@ -60,8 +68,7 @@
     <% else %>
       <% if viewing_as_creator? %>
         <div class="empty-state">
-          <p>This day has no content yet.</p>
-          <%= link_to "Add Content", edit_calendar_calendar_day_path(@calendar, @day.day_number), class: "btn btn-primary" %>
+          <p>This day has no content yet. Use the "Edit This Day" button above to add content.</p>
         </div>
       <% else %>
         <div class="empty-state">

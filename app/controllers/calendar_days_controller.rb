@@ -2,7 +2,7 @@ class CalendarDaysController < ApplicationController
   before_action :set_calendar
   before_action :set_calendar_day
   before_action :authorize_viewer, only: [ :show ]
-  before_action :authorize_creator, only: [ :edit, :update ]
+  before_action :authorize_creator, only: [ :edit, :update, :delete_attachment ]
   before_action :check_day_unlocked, only: [ :show ]
 
   def show
@@ -25,6 +25,26 @@ class CalendarDaysController < ApplicationController
     else
       render :edit, status: :unprocessable_entity
     end
+  end
+
+  def delete_attachment
+    attachment_type = params[:attachment_type]
+
+    begin
+      if attachment_type == "image" && @day.image_file.attached?
+        @day.image_file.purge
+        flash[:notice] = "Image deleted successfully."
+      elsif attachment_type == "video" && @day.video_file.attached?
+        @day.video_file.purge
+        flash[:notice] = "Video deleted successfully."
+      else
+        flash[:alert] = "No attachment found to delete."
+      end
+    rescue => e
+      flash[:alert] = "Error deleting file: #{e.message}"
+    end
+
+    redirect_to edit_calendar_calendar_day_path(@calendar, @day.day_number)
   end
 
   private
@@ -56,6 +76,6 @@ class CalendarDaysController < ApplicationController
   end
 
   def calendar_day_params
-    params.require(:calendar_day).permit(:content_type, :title, :description, :url)
+    params.require(:calendar_day).permit(:content_type, :title, :description, :url, :image_file, :video_file)
   end
 end

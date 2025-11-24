@@ -96,7 +96,7 @@ class UrlEmbedder
   end
 
   def self.embed_image(url)
-    "<img src=\"#{ERB::Util.html_escape(url)}\" class=\"embedded-image\" alt=\"Calendar content image\" />".html_safe
+    "<img src=\"#{ERB::Util.html_escape(url)}\" class=\"embedded-image\" alt=\"Calendar content image\" style=\"max-width: 100%; height: auto; display: block;\" loading=\"lazy\" />".html_safe
   end
 
   def self.embed_link(url)

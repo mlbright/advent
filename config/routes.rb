@@ -6,7 +6,11 @@ Rails.application.routes.draw do
 
   # Calendar routes
   resources :calendars do
-    resources :calendar_days, param: :day_number, only: [ :show, :edit, :update ]
+    resources :calendar_days, param: :day_number, only: [ :show, :edit, :update ] do
+      member do
+        delete :delete_attachment
+      end
+    end
   end
 
   # Calendar view tracking
