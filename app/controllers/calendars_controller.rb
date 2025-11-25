@@ -9,7 +9,7 @@ class CalendarsController < ApplicationController
   end
 
   def show
-    @calendar_days = @calendar.calendar_days.order(:day_number)
+    @calendar_days = @calendar.calendar_days.order(:display_position)
   end
 
   def new

@@ -28,46 +28,22 @@ class Calendar < ApplicationRecord
 
   def shuffle_days
     days = calendar_days.to_a
-    return if days.length < 2
+    return false if days.length < 2
 
     transaction do
-      # Create a mapping of day_number to content
-      day_contents = {}
-      days.each do |day|
-        day_contents[day.day_number] = {
-          content_type: day.content_type,
-          title: day.title,
-          description: day.description,
-          url: day.url,
-          image_blob: day.image_file.attached? ? day.image_file.blob : nil,
-          video_blob: day.video_file.attached? ? day.video_file.blob : nil
-        }
-      end
+      # Generate shuffled positions (1-24)
+      shuffled_positions = (1..24).to_a.shuffle
 
-      # Generate shuffled day numbers
-      shuffled_numbers = (1..24).to_a.shuffle
-
-      # Apply shuffled content to days
+      # Assign new display positions to each day
       days.each_with_index do |day, index|
-        content = day_contents[shuffled_numbers[index]]
-        
-        # Detach existing files
-        day.image_file.detach if day.image_file.attached?
-        day.video_file.detach if day.video_file.attached?
-        
-        # Update with shuffled content
-        day.update!(
-          content_type: content[:content_type],
-          title: content[:title],
-          description: content[:description],
-          url: content[:url]
-        )
-        
-        # Attach files
-        day.image_file.attach(content[:image_blob]) if content[:image_blob]
-        day.video_file.attach(content[:video_blob]) if content[:video_blob]
+        day.update!(display_position: shuffled_positions[index])
       end
     end
+
+    true
+  rescue StandardError => e
+    Rails.logger.error "Shuffle failed: #{e.message}"
+    false
   end
 
   private
@@ -76,7 +52,7 @@ class Calendar < ApplicationRecord
     return if calendar_days.any?
 
     (1..24).each do |day_num|
-      calendar_days.create!(day_number: day_num)
+      calendar_days.create!(day_number: day_num, display_position: day_num)
     end
   end
 
