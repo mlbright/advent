@@ -2,25 +2,31 @@
 
 A multi-tenant Rails 8.1 application for creating and sharing personalized advent calendars.
 
+Inspired by Helen Bright.
+
 ## Features
 
-- **User Authentication**: Secure login system (users created by admins via console)
+- **User Authentication**: Secure login system with user management scripts
 - **Multi-tenant Architecture**: Each user can create calendars for other users
 - **24-Day Advent Calendars**: December 1-24 with rich content
 - **Content Types**:
-  - Text entries
-  - Embedded images
-  - Embedded videos (YouTube, Vimeo)
+  - Images (uploaded or via URL)
+  - Videos (uploaded or via URL with YouTube/Vimeo support)
+  - Title and description text for each day
+- **Flexible Content Sources**: Upload files directly or provide URLs for external content
 - **Smart Unlocking**: Days unlock only in December based on the current date
 - **Creator Preview Mode**: Calendar creators can view and edit all days year-round
 - **View Tracking**: Track which days recipients have viewed
 - **Year Scoping**: Create calendars for any year starting from 2025
 - **One Calendar Per User-Year**: Each creator can only make one calendar per recipient per year
+- **Calendar Shuffling**: Randomize the visual display order (position) of days (available until November 30th)
+- **Day Swapping**: Exchange content between any two days in a calendar
+- **File Management**: Upload images (max 10MB) and videos (max 100MB) with support for multiple formats
 
 ## Technology Stack
 
 - **Rails 8.1.1** with Hotwire (Turbo + Stimulus)
-- **SQLite3** database
+- **SQLite3** database with Active Storage for file uploads
 - **Eastern Time** zone
 - **bcrypt** for authentication
 - **Content Security Policy** configured for YouTube/Vimeo embeds
@@ -63,19 +69,46 @@ After running `db:seed`, you can log in with:
 
 ## Usage
 
-### Creating Users (Admin Only)
+### Managing Users
 
-Since there's no public signup, admins create users via Rails console:
+The application includes convenient shell scripts for user management:
+
+**Add a new user:**
+```bash
+./script/add-user.sh
+```
+
+**Change a user's password:**
+```bash
+./script/change-password.sh
+```
+
+**Delete a user:**
+```bash
+./script/delete-user.sh
+```
+
+Alternatively, you can manage users via Rails console:
 
 ```ruby
 bin/rails console
 
+# Create user
 User.create!(
   email: 'user@example.com',
   password: 'secure_password',
-  password_confirmation: 'secure_password',
-  admin: false
+  password_confirmation: 'secure_password'
 )
+
+# Change password
+user = User.find_by(email: 'user@example.com')
+user.password = 'new_password'
+user.password_confirmation = 'new_password'
+user.save!
+
+# Delete user
+user = User.find_by(email: 'user@example.com')
+user.destroy
 ```
 
 ### Creating a Calendar
@@ -91,14 +124,37 @@ User.create!(
 
 ### Adding Content to Days
 
-1. View your created calendar
+1. View your created calendar (as creator)
 2. Click "Edit" on any day card
-3. Add content elements:
-   - **Text**: Write messages, stories, poems
-   - **Image**: Paste image URLs (JPG, PNG, GIF, WEBP)
-   - **Video**: Paste YouTube or Vimeo URLs
-4. Each day can have multiple elements
-5. Elements display in the order they're added
+3. Select content type (Image or Video)
+4. Choose one of two options:
+   - **URL**: Paste a URL for YouTube, Vimeo, or direct image/video links
+   - **Upload**: Upload an image or video file from your device
+5. Add an optional title and description
+6. Save the day
+
+**Supported Formats:**
+- **Images**: JPEG, PNG, GIF, WEBP (max 10MB)
+- **Videos**: MP4, MOV, AVI, WEBM, OGG (max 100MB)
+- **URLs**: YouTube, Vimeo, or direct links to media files
+
+### Managing Calendar Days
+
+**Shuffle Calendar** (Available until November 30th):
+- Click "Shuffle All Days" button on calendar view
+- Randomizes the visual position of days in the grid
+- Each day keeps its original number and content
+- Useful for surprising recipients with a non-sequential layout
+
+**Swap Days**:
+1. Click "Swap" button on a day card
+2. Select which day to swap with
+3. Preview both days' content
+4. Confirm to exchange all content between the two days
+
+**Delete Attachments**:
+- Use "Delete Uploaded Image/Video" button on edit page
+- Removes uploaded files while keeping other day data
 
 ### Viewing Calendars
 
@@ -112,32 +168,59 @@ User.create!(
 - All days are unlocked year-round in "Creator Preview Mode"
 - See which days have content vs. empty
 - Edit any day at any time
+- Shuffle calendar layout (until November 30th)
+- Swap content between days
+- Delete uploaded files
 
-## URL Embedding
+## URL Embedding and File Handling
 
-The application automatically detects and embeds:
+The application supports both URL-based content and file uploads:
 
+**Automatic URL Detection:**
 - **YouTube**: `youtube.com/watch?v=...` or `youtu.be/...`
 - **Vimeo**: `vimeo.com/123456`
-- **Images**: URLs ending in `.jpg`, `.png`, `.gif`, `.webp`
-- **Other URLs**: Display as clickable links
+- **Direct Media URLs**: URLs ending in supported image/video formats
+
+**File Uploads:**
+- **Images**: JPEG, JPG, PNG, GIF, WEBP (max 10MB)
+- **Videos**: MP4, MOV, AVI, WEBM, OGG (max 100MB)
+- Files stored using Active Storage with SQLite backend
+- Automatic content type validation
+
+**Content Rules:**
+- Each day can have only one content source (URL or upload, not both)
+- You can switch between URL and upload by editing the day
+- Files can be deleted independently via the edit page
 
 ## Architecture
 
 ### Models
 
 - **User**: Authentication with has_secure_password
-- **Calendar**: Belongs to creator and recipient
-- **CalendarDay**: 24 days per calendar (auto-generated)
-- **ContentElement**: Multiple elements per day (text/image/video)
-- **CalendarView**: Tracks which days users have viewed
+- **Calendar**: Belongs to creator and recipient, has many calendar_days
+- **CalendarDay**: 24 days per calendar (auto-generated on creation)
+  - `day_number`: The actual day (1-24)
+  - `display_position`: Visual position in grid (for shuffling)
+  - `content_type`: 'image' or 'video'
+  - `title`, `description`, `url`: Content metadata
+  - Attachments: `image_file` and `video_file` via Active Storage
+- **CalendarView**: Tracks which days recipients have viewed
 
 ### Key Business Logic
 
 - `Calendar#day_unlocked_for?(day_number, user)`: Determines if a day is accessible
   - Creators: Always unlocked
   - Recipients: Only in December when `current_day >= day_number`
-  
+
+- `Calendar#can_shuffle?`: Checks if shuffling is allowed (until November 30th)
+
+- `Calendar#shuffle_days`: Randomizes display_position of all days without changing content
+
+- `CalendarDay#swap_with(other_day)`: Exchanges all content between two days
+  - Swaps title, description, URL, content_type
+  - Properly handles file attachment transfers
+  - Uses transaction for atomicity
+
 - `UrlEmbedder.embed(url, element_type)`: Converts URLs to embedded HTML
   - Extracts YouTube/Vimeo IDs
   - Generates responsive iframes
@@ -149,7 +232,9 @@ The application automatically detects and embeds:
 - Authorization checks on calendars (creator/recipient only)
 - Content Security Policy allows YouTube/Vimeo iframes
 - URL validation with HEAD requests to verify accessibility
+- File upload validation (type and size limits)
 - CSRF protection enabled
+- Secure password hashing with bcrypt
 
 ## Customization
 
@@ -173,14 +258,37 @@ def day_unlocked_for?(day_number, user)
 end
 ```
 
-### Content Element Types
+### Shuffle Deadline
 
-To add new element types, update `ContentElement` model:
+The November 30th shuffle deadline is enforced in `Calendar#can_shuffle?`. To change or remove this deadline:
 
-1. Add to enum: `enum element_type: { text: 'text', image: 'image', video: 'video', audio: 'audio' }`
-2. Update form in `calendar_days/edit.html.erb`
-3. Update display logic in `calendar_days/show.html.erb`
-4. Extend `UrlEmbedder` service
+```ruby
+def can_shuffle?
+  # Option 1: Allow shuffling anytime
+  true
+  
+  # Option 2: Use a different deadline
+  current_date = Time.zone.now.to_date
+  deadline = Date.new(year, 12, 15)  # Change to December 15
+  current_date <= deadline
+end
+```
+
+### File Upload Limits
+
+To adjust file size limits, update `app/models/calendar_day.rb`:
+
+```ruby
+# For images (currently 10MB)
+if image_file.byte_size > 20.megabytes  # Change to 20MB
+  errors.add(:image_file, "must be less than 20MB")
+end
+
+# For videos (currently 100MB)  
+if video_file.byte_size > 200.megabytes  # Change to 200MB
+  errors.add(:video_file, "must be less than 200MB")
+end
+```
 
 ## Testing
 
