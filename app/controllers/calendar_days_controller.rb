@@ -2,7 +2,7 @@ class CalendarDaysController < ApplicationController
   before_action :set_calendar
   before_action :set_calendar_day
   before_action :authorize_viewer, only: [ :show ]
-  before_action :authorize_creator, only: [ :edit, :update, :delete_attachment ]
+  before_action :authorize_creator, only: [ :edit, :update, :delete_attachment, :swap_initiate, :swap_complete ]
   before_action :check_day_unlocked, only: [ :show ]
 
   def show
@@ -55,6 +55,31 @@ class CalendarDaysController < ApplicationController
     end
 
     redirect_to edit_calendar_calendar_day_path(@calendar, @day.day_number), status: :see_other
+  end
+
+  def swap_initiate
+    @other_days = @calendar.calendar_days.where.not(day_number: @day.day_number).order(:day_number)
+  end
+
+  def swap_complete
+    target_day_number = params[:target_day_number].to_i
+    target_day = @calendar.calendar_days.find_by(day_number: target_day_number)
+
+    if target_day.nil?
+      redirect_to calendar_path(@calendar), alert: "Invalid target day selected."
+      return
+    end
+
+    if target_day.day_number == @day.day_number
+      redirect_to calendar_path(@calendar), alert: "Cannot swap a day with itself."
+      return
+    end
+
+    if @day.swap_with(target_day)
+      redirect_to calendar_path(@calendar), notice: "Successfully swapped Day #{@day.day_number} with Day #{target_day.day_number}."
+    else
+      redirect_to calendar_path(@calendar), alert: "Failed to swap days. Please try again."
+    end
   end
 
   private

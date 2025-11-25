@@ -65,6 +65,7 @@
           <% if viewing_as_creator? %>
             <div class="day-actions">
               <%= link_to "Edit", edit_calendar_calendar_day_path(@calendar, calendar_day.day_number), class: "btn btn-xs" %>
+              <%= link_to "Swap", swap_initiate_calendar_calendar_day_path(@calendar, calendar_day.day_number), class: "btn btn-xs btn-secondary" %>
             </div>
           <% end %>
         <% else %>

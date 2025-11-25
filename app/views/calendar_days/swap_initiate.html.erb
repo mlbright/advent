@@ -1,0 +1,91 @@
+<div class="calendar-day-swap">
+  <h1>Swap Day <%= @day.day_number %></h1>
+  <p class="form-help">Select which day you want to swap with Day <%= @day.day_number %>. All content (title, description, media, and attachments) will be exchanged between the two days.</p>
+
+  <div class="current-day-preview" style="margin-bottom: 2rem; padding: 1rem; background: #f8f9fa; border-radius: 4px;">
+    <h3>Day <%= @day.day_number %> Current Content:</h3>
+    <% if @day.has_content? %>
+      <p><strong>Type:</strong> <%= @day.content_type&.titleize %></p>
+      <p><strong>Title:</strong> <%= @day.title.present? ? @day.title : "(none)" %></p>
+      <p><strong>Description:</strong> <%= @day.description.present? ? truncate(@day.description, length: 100) : "(none)" %></p>
+      <% if @day.url.present? %>
+        <p><strong>URL:</strong> <%= truncate(@day.url, length: 50) %></p>
+      <% elsif @day.has_attached_file? %>
+        <p><strong>File:</strong> <%= @day.image_file.attached? ? @day.image_file.filename : @day.video_file.filename %></p>
+      <% end %>
+    <% else %>
+      <p><em>No content</em></p>
+    <% end %>
+  </div>
+
+  <%= form_with url: swap_complete_calendar_calendar_day_path(@calendar, @day.day_number), method: :post, local: true do |form| %>
+    <div class="form-group">
+      <%= form.label :target_day_number, "Swap with Day:" %>
+      <%= form.select :target_day_number, 
+          @other_days.map { |d| [
+            "Day #{d.day_number}#{d.has_content? ? " (#{d.content_type&.titleize})" : " (Empty)"}",
+            d.day_number
+          ] },
+          { include_blank: 'Select a day...' },
+          { class: "form-control", required: true, id: "target_day_select" } %>
+    </div>
+
+    <div id="target_day_preview" style="display: none; margin-top: 1rem; padding: 1rem; background: #e9ecef; border-radius: 4px;">
+      <h3>Target Day Content:</h3>
+      <div id="target_day_content"></div>
+    </div>
+
+    <div class="form-actions" style="margin-top: 2rem;">
+      <%= form.submit "Swap Days", class: "btn btn-primary", data: { turbo_confirm: "Are you sure you want to swap these days? This will exchange all content between them." } %>
+      <%= link_to "Cancel", calendar_path(@calendar), class: "btn btn-secondary" %>
+    </div>
+  <% end %>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const targetSelect = document.getElementById('target_day_select');
+      const previewDiv = document.getElementById('target_day_preview');
+      const previewContent = document.getElementById('target_day_content');
+      
+      const dayData = {
+        <% @other_days.each do |day| %>
+        <%= day.day_number %>: {
+          hasContent: <%= day.has_content? %>,
+          contentType: <%= day.content_type ? "'#{day.content_type}'" : 'null' %>,
+          title: <%= day.title.present? ? "'#{j(day.title)}'" : 'null' %>,
+          description: <%= day.description.present? ? "'#{j(truncate(day.description, length: 100))}'" : 'null' %>,
+          url: <%= day.url.present? ? "'#{j(truncate(day.url, length: 50))}'" : 'null' %>,
+          hasFile: <%= day.has_attached_file? %>,
+          fileName: <%= day.has_attached_file? ? "'#{j(day.image_file.attached? ? day.image_file.filename.to_s : day.video_file.filename.to_s)}'" : 'null' %>
+        }<%= day == @other_days.last ? '' : ',' %>
+        <% end %>
+      };
+      
+      targetSelect.addEventListener('change', function() {
+        const dayNumber = parseInt(this.value);
+        if (dayNumber && dayData[dayNumber]) {
+          const day = dayData[dayNumber];
+          let html = '';
+          
+          if (day.hasContent) {
+            html += `<p><strong>Type:</strong> ${day.contentType ? day.contentType.charAt(0).toUpperCase() + day.contentType.slice(1) : 'None'}</p>`;
+            html += `<p><strong>Title:</strong> ${day.title || '(none)'}</p>`;
+            html += `<p><strong>Description:</strong> ${day.description || '(none)'}</p>`;
+            if (day.url) {
+              html += `<p><strong>URL:</strong> ${day.url}</p>`;
+            } else if (day.hasFile) {
+              html += `<p><strong>File:</strong> ${day.fileName}</p>`;
+            }
+          } else {
+            html = '<p><em>No content</em></p>';
+          }
+          
+          previewContent.innerHTML = html;
+          previewDiv.style.display = 'block';
+        } else {
+          previewDiv.style.display = 'none';
+        }
+      });
+    });
+  </script>
+</div>

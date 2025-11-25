@@ -9,6 +9,8 @@ Rails.application.routes.draw do
     resources :calendar_days, param: :day_number, only: [ :show, :edit, :update ] do
       member do
         delete :delete_attachment
+        get :swap_initiate
+        post :swap_complete
       end
     end
   end

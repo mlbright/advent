@@ -36,6 +36,54 @@ class CalendarDay < ApplicationRecord
     (content_type == "image" && image_file.attached?) || (content_type == "video" && video_file.attached?)
   end
 
+  def swap_with(other_day)
+    return false if other_day.nil? || other_day.calendar_id != calendar_id
+
+    transaction do
+      # Store attributes from both days
+      self_attrs = {
+        content_type: content_type,
+        title: title,
+        description: description,
+        url: url
+      }
+      
+      other_attrs = {
+        content_type: other_day.content_type,
+        title: other_day.title,
+        description: other_day.description,
+        url: other_day.url
+      }
+
+      # Handle attached files by creating temporary references
+      self_image = image_file.attached? ? image_file.blob : nil
+      self_video = video_file.attached? ? video_file.blob : nil
+      other_image = other_day.image_file.attached? ? other_day.image_file.blob : nil
+      other_video = other_day.video_file.attached? ? other_day.video_file.blob : nil
+
+      # Detach all files
+      image_file.detach if image_file.attached?
+      video_file.detach if video_file.attached?
+      other_day.image_file.detach if other_day.image_file.attached?
+      other_day.video_file.detach if other_day.video_file.attached?
+
+      # Update attributes
+      update!(other_attrs)
+      other_day.update!(self_attrs)
+
+      # Reattach files to swapped days
+      image_file.attach(other_image) if other_image
+      video_file.attach(other_video) if other_video
+      other_day.image_file.attach(self_image) if self_image
+      other_day.video_file.attach(self_video) if self_video
+    end
+
+    true
+  rescue StandardError => e
+    Rails.logger.error "Swap failed: #{e.message}"
+    false
+  end
+
   private
 
   def only_one_content_source
