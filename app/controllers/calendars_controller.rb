@@ -1,6 +1,6 @@
 class CalendarsController < ApplicationController
-  before_action :set_calendar, only: [ :show, :edit, :update, :destroy ]
-  before_action :authorize_creator, only: [ :edit, :update, :destroy ]
+  before_action :set_calendar, only: [ :show, :edit, :update, :destroy, :shuffle ]
+  before_action :authorize_creator, only: [ :edit, :update, :destroy, :shuffle ]
   before_action :authorize_viewer, only: [ :show ]
 
   def index
@@ -44,6 +44,19 @@ class CalendarsController < ApplicationController
   def destroy
     @calendar.destroy
     redirect_to calendars_url, notice: "Calendar was successfully deleted."
+  end
+
+  def shuffle
+    unless @calendar.can_shuffle?
+      redirect_to @calendar, alert: "Shuffling is only allowed until November 30th."
+      return
+    end
+
+    if @calendar.shuffle_days
+      redirect_to @calendar, notice: "Calendar days have been shuffled successfully."
+    else
+      redirect_to @calendar, alert: "Failed to shuffle calendar days."
+    end
   end
 
   private

@@ -6,6 +6,10 @@ Rails.application.routes.draw do
 
   # Calendar routes
   resources :calendars do
+    member do
+      post :shuffle
+    end
+    
     resources :calendar_days, param: :day_number, only: [ :show, :edit, :update ] do
       member do
         delete :delete_attachment

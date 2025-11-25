@@ -19,6 +19,9 @@
       </div>
       <div class="calendar-actions">
         <%= link_to "Edit Calendar Details", edit_calendar_path(@calendar), class: "btn btn-sm" %>
+        <% if @calendar.can_shuffle? %>
+          <%= button_to "Shuffle All Days", shuffle_calendar_path(@calendar), method: :post, class: "btn btn-sm btn-warning", data: { turbo_confirm: "Are you sure you want to shuffle all calendar days? This will randomly redistribute all content across the 24 days." } %>
+        <% end %>
         <%= link_to "Back to My Calendars", calendars_path, class: "btn btn-sm" %>
       </div>
     <% else %>
