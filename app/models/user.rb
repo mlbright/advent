@@ -4,6 +4,7 @@ class User < ApplicationRecord
   has_many :created_calendars, class_name: "Calendar", foreign_key: "creator_id", dependent: :destroy
   has_many :received_calendars, class_name: "Calendar", foreign_key: "recipient_id", dependent: :destroy
   has_many :calendar_views, dependent: :destroy
+  has_many :request_logs, dependent: :destroy
 
   validates :email, presence: true, uniqueness: { case_sensitive: false }, format: { with: URI::MailTo::EMAIL_REGEXP }
 

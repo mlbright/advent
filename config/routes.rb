@@ -8,6 +8,9 @@ Rails.application.routes.draw do
   get "change-password", to: "users#edit_password", as: :edit_password
   patch "change-password", to: "users#update_password", as: :update_password
 
+  # Admin routes
+  resources :request_logs, only: [ :index ]
+
   # Calendar routes
   resources :calendars do
     member do

@@ -5,11 +5,25 @@ class ApplicationController < ActionController::Base
   # Changes to the importmap will invalidate the etag for HTML responses
   stale_when_importmap_changes
 
+  before_action :log_request
   before_action :require_login
 
   helper_method :current_user, :logged_in?, :viewing_as_creator?
 
   private
+
+  def log_request
+    RequestLog.create(
+      ip_address: request.remote_ip,
+      path: request.fullpath,
+      user: current_user,
+      user_agent: request.user_agent,
+      request_method: request.method
+    )
+  rescue => e
+    # Don't let logging errors break the application
+    Rails.logger.error "Failed to log request: #{e.message}"
+  end
 
   def current_user
     @current_user ||= User.find_by(id: session[:user_id]) if session[:user_id]

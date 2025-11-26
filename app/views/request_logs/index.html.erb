@@ -1,0 +1,179 @@
+<div class="request-logs-index">
+  <div class="page-header">
+    <h1>Request Logs</h1>
+    <p class="text-muted">Viewing all incoming requests to the application</p>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Timestamp</th>
+          <th>IP Address</th>
+          <th>User</th>
+          <th>Method</th>
+          <th>Path</th>
+          <th>User Agent</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @request_logs.each do |log| %>
+          <tr>
+            <td><%= log.created_at.strftime("%Y-%m-%d %H:%M:%S") %></td>
+            <td><%= log.ip_address %></td>
+            <td><%= log.user&.email || "Anonymous" %></td>
+            <td><span class="badge badge-<%= request_method_badge_class(log.request_method) %>"><%= log.request_method %></span></td>
+            <td><%= log.path %></td>
+            <td class="text-truncate" style="max-width: 300px;" title="<%= log.user_agent %>">
+              <%= log.user_agent %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <% if @total_pages > 1 %>
+    <div class="pagination-wrapper">
+      <nav>
+        <ul class="pagination">
+          <% if @page > 1 %>
+            <li><%= link_to "Previous", request_logs_path(page: @page - 1), class: "page-link" %></li>
+          <% end %>
+          
+          <% (1..@total_pages).each do |page| %>
+            <% if page == @page %>
+              <li class="active"><span class="page-link"><%= page %></span></li>
+            <% elsif (page - @page).abs <= 2 || page == 1 || page == @total_pages %>
+              <li><%= link_to page, request_logs_path(page: page), class: "page-link" %></li>
+            <% elsif (page - @page).abs == 3 %>
+              <li><span class="page-link">...</span></li>
+            <% end %>
+          <% end %>
+          
+          <% if @page < @total_pages %>
+            <li><%= link_to "Next", request_logs_path(page: @page + 1), class: "page-link" %></li>
+          <% end %>
+        </ul>
+      </nav>
+      <p class="text-muted">Showing page <%= @page %> of <%= @total_pages %> (<%= @total_count %> total requests)</p>
+    </div>
+  <% end %>
+</div>
+
+<style>
+.request-logs-index {
+  padding: 20px;
+}
+
+.table-responsive {
+  margin-top: 20px;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th {
+  background-color: #f8f9fa;
+  padding: 12px;
+  text-align: left;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 8px;
+  font-size: 0.85em;
+  font-weight: 600;
+  border-radius: 4px;
+}
+
+.badge-info {
+  background-color: #17a2b8;
+  color: white;
+}
+
+.badge-success {
+  background-color: #28a745;
+  color: white;
+}
+
+.badge-warning {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.badge-danger {
+  background-color: #dc3545;
+  color: white;
+}
+
+.badge-secondary {
+  background-color: #6c757d;
+  color: white;
+}
+
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.text-muted {
+  color: #6c757d;
+}
+
+.pagination-wrapper {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  list-style: none;
+  padding: 0;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.pagination li {
+  display: inline;
+}
+
+.page-link {
+  padding: 8px 12px;
+  text-decoration: none;
+  color: #007bff;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.page-link:hover {
+  background-color: #e9ecef;
+}
+
+.pagination li.active .page-link {
+  background-color: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.pagination li.active .page-link:hover {
+  background-color: #0056b3;
+}
+</style>

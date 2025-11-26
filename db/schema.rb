@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_11_25_041201) do
+ActiveRecord::Schema[8.1].define(version: 2025_11_26_163321) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -76,6 +76,19 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_25_041201) do
     t.index ["recipient_id"], name: "index_calendars_on_recipient_id"
   end
 
+  create_table "request_logs", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "ip_address", null: false
+    t.string "path", null: false
+    t.string "request_method"
+    t.datetime "updated_at", null: false
+    t.string "user_agent"
+    t.integer "user_id"
+    t.index ["created_at"], name: "index_request_logs_on_created_at"
+    t.index ["ip_address"], name: "index_request_logs_on_ip_address"
+    t.index ["user_id"], name: "index_request_logs_on_user_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.boolean "admin", default: false, null: false
     t.datetime "created_at", null: false
@@ -87,4 +100,5 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_25_041201) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "request_logs", "users"
 end
