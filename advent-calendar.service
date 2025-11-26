@@ -1,0 +1,29 @@
+[Unit]
+Description=Advent Calendar Rails Application
+After=network.target
+
+[Service]
+Type=simple
+User=mbright
+WorkingDirectory=/home/mbright/advent
+
+# Load environment variables from file
+EnvironmentFile=/etc/advent-calendar.env
+
+ExecStart=/usr/bin/env bash -lc 'bundle exec puma -C config/puma.rb -b tcp://0.0.0.0:3000'
+
+# Restart policy
+Restart=always
+RestartSec=10
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=advent-calendar
+
+# Security settings (optional but recommended)
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

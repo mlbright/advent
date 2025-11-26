@@ -301,7 +301,122 @@ bin/rails test:system
 
 ## Deployment
 
-The application includes Kamal configuration for Docker deployment. See `config/deploy.yml` for details.
+### Systemd Service (Linux)
+
+The application includes a systemd service unit for production deployment. The service runs the Rails app with Puma and listens on all network interfaces.
+
+**Installation:**
+
+1. **Generate a secret key:**
+```bash
+bin/rails secret
+```
+
+2. **Create environment file:**
+```bash
+sudo cp advent-calendar.env.example /etc/advent-calendar.env
+sudo chmod 600 /etc/advent-calendar.env
+sudo chown root:root /etc/advent-calendar.env
+```
+
+3. **Edit the environment file:**
+```bash
+sudo nano /etc/advent-calendar.env
+```
+Update `SECRET_KEY_BASE` with the secret generated in step 1.
+
+4. **Prepare the application:**
+```bash
+RAILS_ENV=production bin/rails db:migrate
+RAILS_ENV=production bin/rails db:seed  # Optional: create sample users
+RAILS_ENV=production bin/rails assets:precompile  # If needed
+```
+
+5. **Install and start the service:**
+```bash
+# Copy service file to systemd directory
+sudo cp advent-calendar.service /etc/systemd/system/
+
+# Reload systemd configuration
+sudo systemctl daemon-reload
+
+# Enable service to start on boot
+sudo systemctl enable advent-calendar
+
+# Start the service
+sudo systemctl start advent-calendar
+```
+
+**Service Management:**
+
+```bash
+# Check service status
+sudo systemctl status advent-calendar
+
+# View logs
+sudo journalctl -u advent-calendar -f
+
+# Restart the service (e.g., after code changes)
+sudo systemctl restart advent-calendar
+
+# Stop the service
+sudo systemctl stop advent-calendar
+
+# Disable service from starting on boot
+sudo systemctl disable advent-calendar
+```
+
+**Updating the Application:**
+
+After pulling new code or making changes:
+
+```bash
+# Navigate to application directory
+cd /home/mbright/advent
+
+# Pull latest changes
+git pull
+
+# Install dependencies
+bundle install
+
+# Run migrations
+RAILS_ENV=production bin/rails db:migrate
+
+# Precompile assets if needed
+RAILS_ENV=production bin/rails assets:precompile
+
+# Restart the service
+sudo systemctl restart advent-calendar
+```
+
+**Network Access:**
+
+The service listens on `0.0.0.0:3000` by default, making it accessible on all network interfaces. You can:
+
+- Access locally: `http://localhost:3000`
+- Access from other machines: `http://your-server-ip:3000`
+- Use a reverse proxy (nginx/Apache) for HTTPS and domain names
+
+**Troubleshooting:**
+
+If the service fails to start:
+
+```bash
+# Check detailed logs
+sudo journalctl -u advent-calendar -n 50 --no-pager
+
+# Verify environment file exists and has correct permissions
+ls -la /etc/advent-calendar.env
+
+# Test the application manually
+cd /home/mbright/advent
+RAILS_ENV=production bundle exec puma -C config/puma.rb -b tcp://0.0.0.0:3000
+```
+
+### Docker/Kamal
+
+The application also includes Kamal configuration for Docker deployment. See `config/deploy.yml` for details.
 
 ## License
 
