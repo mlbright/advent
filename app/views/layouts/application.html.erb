@@ -32,6 +32,7 @@
           <% if logged_in? %>
             <div class="navbar-user">
               <span>Welcome, <%= current_user.email %>!</span>
+              <%= link_to "Change Password", edit_password_path, class: "btn btn-sm btn-secondary" %>
               <%= button_to "Logout", logout_path, method: :delete, class: "btn btn-sm" %>
             </div>
           <% end %>

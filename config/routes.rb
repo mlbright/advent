@@ -4,6 +4,10 @@ Rails.application.routes.draw do
   post "login", to: "sessions#create"
   delete "logout", to: "sessions#destroy"
 
+  # User routes
+  get "change-password", to: "users#edit_password", as: :edit_password
+  patch "change-password", to: "users#update_password", as: :update_password
+
   # Calendar routes
   resources :calendars do
     member do

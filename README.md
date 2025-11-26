@@ -69,6 +69,17 @@ After running `db:seed`, you can log in with:
 
 ## Usage
 
+### Managing Your Account
+
+**Change Your Password:**
+
+1. Log in to your account
+2. Click "Change Password" in the navigation bar
+3. Enter your current password
+4. Enter your new password (minimum 6 characters)
+5. Confirm your new password
+6. Click "Update Password"
+
 ### Managing Users
 
 The application includes convenient shell scripts for user management:
