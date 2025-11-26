@@ -5,7 +5,7 @@ class ApplicationController < ActionController::Base
   # Changes to the importmap will invalidate the etag for HTML responses
   stale_when_importmap_changes
 
-  before_action :log_request
+  prepend_before_action :log_request
   before_action :require_login
 
   helper_method :current_user, :logged_in?, :viewing_as_creator?
@@ -13,10 +13,13 @@ class ApplicationController < ActionController::Base
   private
 
   def log_request
+    # Use session[:user_id] directly to avoid triggering current_user before session is set
+    user_id = session[:user_id]
+    
     RequestLog.create(
       ip_address: request.remote_ip,
       path: request.fullpath,
-      user: current_user,
+      user_id: user_id,
       user_agent: request.user_agent,
       request_method: request.method
     )
