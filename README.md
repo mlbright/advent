@@ -38,15 +38,29 @@ Inspired by Helen Bright.
 - Ruby 3.x
 - Rails 8.1.1
 - SQLite3
+- libvips (for image processing)
 
 ### Installation
 
-1. Install dependencies:
+1. Install system dependencies:
+
+**Ubuntu/Debian:**
+```bash
+sudo apt-get update
+sudo apt-get install -y libvips libvips-dev libvips-tools
+```
+
+**macOS:**
+```bash
+brew install vips
+```
+
+2. Install Ruby dependencies:
 ```bash
 bundle install
 ```
 
-2. Setup database:
+3. Setup database:
 ```bash
 bin/rails db:migrate
 bin/rails db:seed
