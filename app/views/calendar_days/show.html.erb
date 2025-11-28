@@ -4,7 +4,6 @@
     <% if @day.title.present? %>
       <h2 class="day-title"><%= @day.title %></h2>
     <% end %>
-    <p class="calendar-title">From: <%= @calendar.title %></p>
     
     <% if viewing_as_creator? %>
       <div class="alert alert-info">
