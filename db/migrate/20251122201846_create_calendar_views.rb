@@ -9,6 +9,6 @@ class CreateCalendarViews < ActiveRecord::Migration[8.1]
       t.timestamps
     end
 
-    add_index :calendar_views, [:calendar_id, :user_id, :day_number], unique: true, name: "index_calendar_views_on_calendar_user_day"
+    add_index :calendar_views, [ :calendar_id, :user_id, :day_number ], unique: true, name: "index_calendar_views_on_calendar_user_day"
   end
 end

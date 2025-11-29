@@ -1,6 +1,6 @@
 class UsersController < ApplicationController
-  before_action :set_user, only: [:edit_password, :update_password]
-  before_action :require_admin, only: [:index, :new, :create, :destroy]
+  before_action :set_user, only: [ :edit_password, :update_password ]
+  before_action :require_admin, only: [ :index, :new, :create, :destroy ]
 
   def index
     @users = User.order(created_at: :desc)

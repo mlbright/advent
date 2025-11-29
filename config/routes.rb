@@ -9,8 +9,8 @@ Rails.application.routes.draw do
   patch "change-password", to: "users#update_password", as: :update_password
 
   # Admin routes
-  resources :users, only: [:index, :new, :create, :destroy]
-  resources :request_logs, only: [:index]
+  resources :users, only: [ :index, :new, :create, :destroy ]
+  resources :request_logs, only: [ :index ]
 
   # Calendar routes
   resources :calendars do
@@ -18,7 +18,7 @@ Rails.application.routes.draw do
       post :shuffle
     end
 
-    resources :calendar_days, param: :day_number, only: [:show, :edit, :update] do
+    resources :calendar_days, param: :day_number, only: [ :show, :edit, :update ] do
       member do
         delete :delete_attachment
         get :swap_initiate
@@ -28,7 +28,7 @@ Rails.application.routes.draw do
   end
 
   # Calendar view tracking
-  resources :calendar_views, only: [:create]
+  resources :calendar_views, only: [ :create ]
 
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 

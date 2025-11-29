@@ -1,9 +1,9 @@
 class CalendarDaysController < ApplicationController
   before_action :set_calendar
   before_action :set_calendar_day
-  before_action :authorize_viewer, only: [:show]
-  before_action :authorize_creator, only: [:edit, :update, :delete_attachment, :swap_initiate, :swap_complete]
-  before_action :check_day_unlocked, only: [:show]
+  before_action :authorize_viewer, only: [ :show ]
+  before_action :authorize_creator, only: [ :edit, :update, :delete_attachment, :swap_initiate, :swap_complete ]
+  before_action :check_day_unlocked, only: [ :show ]
 
   def show
     # Record the view if recipient is viewing
@@ -85,7 +85,13 @@ class CalendarDaysController < ApplicationController
   private
 
   def set_calendar
-    @calendar = Calendar.find(params[:calendar_id])
+    @calendar = Calendar.where(
+      "creator_id = ? OR recipient_id = ?",
+      current_user.id,
+      current_user.id
+    ).find(params[:calendar_id])
+  rescue ActiveRecord::RecordNotFound
+    redirect_to calendars_path, alert: "Calendar not found or you don't have access to it."
   end
 
   def set_calendar_day

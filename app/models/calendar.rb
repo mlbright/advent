@@ -7,8 +7,8 @@ class Calendar < ApplicationRecord
   accepts_nested_attributes_for :calendar_days, allow_destroy: true
 
   validates :title, presence: true
-  validates :year, presence: true, numericality: {greater_than_or_equal_to: 2025, only_integer: true}
-  validates :creator_id, uniqueness: {scope: [:recipient_id, :year], message: "can only create one calendar per recipient per year"}
+  validates :year, presence: true, numericality: { greater_than_or_equal_to: 2025, only_integer: true }
+  validates :creator_id, uniqueness: { scope: [ :recipient_id, :year ], message: "can only create one calendar per recipient per year" }
 
   after_create :generate_calendar_days
   after_create :shuffle_calendar_days

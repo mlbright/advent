@@ -1,7 +1,7 @@
 class CalendarsController < ApplicationController
-  before_action :set_calendar, only: [:show, :edit, :update, :destroy, :shuffle]
-  before_action :authorize_creator, only: [:edit, :update, :destroy, :shuffle]
-  before_action :authorize_viewer, only: [:show]
+  before_action :set_calendar, only: [ :show, :edit, :update, :destroy, :shuffle ]
+  before_action :authorize_creator, only: [ :edit, :update, :destroy, :shuffle ]
+  before_action :authorize_viewer, only: [ :show ]
 
   def index
     @received_calendars = current_user.received_calendars.includes(:creator).order(year: :desc, created_at: :desc).group_by(&:year)
@@ -62,7 +62,13 @@ class CalendarsController < ApplicationController
   private
 
   def set_calendar
-    @calendar = Calendar.find(params[:id])
+    @calendar = Calendar.where(
+      "creator_id = ? OR recipient_id = ?",
+      current_user.id,
+      current_user.id
+    ).find(params[:id])
+  rescue ActiveRecord::RecordNotFound
+    redirect_to calendars_path, alert: "Calendar not found or you don't have access to it."
   end
 
   def authorize_creator
