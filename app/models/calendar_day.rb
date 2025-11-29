@@ -8,15 +8,15 @@ class CalendarDay < ApplicationRecord
   has_one_attached :video_file
 
   attribute :content_type, :string
-  enum :content_type, { image: "image", video: "video" }
+  enum :content_type, {image: "image", video: "video"}
 
-  validates :day_number, presence: true, numericality: { greater_than_or_equal_to: 1, less_than_or_equal_to: 24, only_integer: true }
-  validates :day_number, uniqueness: { scope: :calendar_id }
-  validates :content_type, inclusion: { in: %w[image video] }, allow_nil: true
+  validates :day_number, presence: true, numericality: {greater_than_or_equal_to: 1, less_than_or_equal_to: 24, only_integer: true}
+  validates :day_number, uniqueness: {scope: :calendar_id}
+  validates :content_type, inclusion: {in: %w[image video]}, allow_nil: true
 
   # Validate that only one content source is present (but allow none)
   validate :only_one_content_source
-  validates :url, format: { with: URI::DEFAULT_PARSER.make_regexp(%w[http https]), message: "must be a valid URL" }, if: -> { url.present? }
+  validates :url, format: {with: URI::DEFAULT_PARSER.make_regexp(%w[http https]), message: "must be a valid URL"}, if: -> { url.present? }
 
   # Custom file validations
   validate :image_file_validation, if: -> { image_file.attached? }
@@ -47,7 +47,7 @@ class CalendarDay < ApplicationRecord
         description: description,
         url: url
       }
-      
+
       other_attrs = {
         content_type: other_day.content_type,
         title: other_day.title,
@@ -79,7 +79,7 @@ class CalendarDay < ApplicationRecord
     end
 
     true
-  rescue StandardError => e
+  rescue => e
     Rails.logger.error "Swap failed: #{e.message}"
     false
   end
@@ -103,7 +103,7 @@ class CalendarDay < ApplicationRecord
     return unless image_file.attached?
 
     # Validate content type
-    allowed_types = [ "image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp" ]
+    allowed_types = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"]
     unless allowed_types.include?(image_file.content_type)
       errors.add(:image_file, "must be a JPEG, PNG, GIF, or WEBP image")
     end
@@ -118,7 +118,7 @@ class CalendarDay < ApplicationRecord
     return unless video_file.attached?
 
     # Validate content type
-    allowed_types = [ "video/mp4", "video/quicktime", "video/x-msvideo", "video/webm", "video/ogg" ]
+    allowed_types = ["video/mp4", "video/quicktime", "video/x-msvideo", "video/webm", "video/ogg"]
     unless allowed_types.include?(video_file.content_type)
       errors.add(:video_file, "must be an MP4, MOV, AVI, WEBM, or OGG video")
     end
@@ -138,7 +138,7 @@ class CalendarDay < ApplicationRecord
     unless response.is_a?(Net::HTTPSuccess) || response.is_a?(Net::HTTPRedirection)
       errors.add(:url, "is not accessible (HTTP #{response.code})")
     end
-  rescue StandardError => e
+  rescue => e
     errors.add(:url, "could not be validated (#{e.message})")
   end
 end

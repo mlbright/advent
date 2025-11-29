@@ -47,9 +47,9 @@ class UrlEmbedder
 
       <<~HTML.html_safe
         <div class="embed-container">
-          <iframe src="https://www.youtube-nocookie.com/embed/#{video_id}#{time_param}"#{' '}
-                  frameborder="0"#{' '}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"#{' '}
+          <iframe src="https://www.youtube-nocookie.com/embed/#{video_id}#{time_param}"#{" "}
+                  frameborder="0"#{" "}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"#{" "}
                   allowfullscreen>
           </iframe>
         </div>
@@ -63,9 +63,9 @@ class UrlEmbedder
 
       <<~HTML.html_safe
         <div class="embed-container">
-          <iframe src="https://www.youtube-nocookie.com/embed/#{video_id}#{time_param}"#{' '}
-                  frameborder="0"#{' '}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"#{' '}
+          <iframe src="https://www.youtube-nocookie.com/embed/#{video_id}#{time_param}"#{" "}
+                  frameborder="0"#{" "}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"#{" "}
                   allowfullscreen>
           </iframe>
         </div>
@@ -76,9 +76,9 @@ class UrlEmbedder
 
       <<~HTML.html_safe
         <div class="embed-container">
-          <iframe src="https://player.vimeo.com/video/#{video_id}"#{' '}
-                  frameborder="0"#{' '}
-                  allow="autoplay; fullscreen; picture-in-picture"#{' '}
+          <iframe src="https://player.vimeo.com/video/#{video_id}"#{" "}
+                  frameborder="0"#{" "}
+                  allow="autoplay; fullscreen; picture-in-picture"#{" "}
                   allowfullscreen>
           </iframe>
         </div>
@@ -148,7 +148,7 @@ class UrlEmbedder
     seconds = remaining.to_i if remaining.match?(/^\d+$/)
 
     total_seconds = (hours * 3600) + (minutes * 60) + seconds
-    total_seconds > 0 ? total_seconds : nil
+    (total_seconds > 0) ? total_seconds : nil
   end
 
   def self.embed_image(url)

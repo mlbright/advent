@@ -15,7 +15,7 @@ class ApplicationController < ActionController::Base
   def log_request
     # Use session[:user_id] directly to avoid triggering current_user before session is set
     user_id = session[:user_id]
-    
+
     RequestLog.create(
       ip_address: request.remote_ip,
       path: request.fullpath,

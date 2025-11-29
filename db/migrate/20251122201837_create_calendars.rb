@@ -12,6 +12,6 @@ class CreateCalendars < ActiveRecord::Migration[8.1]
 
     add_index :calendars, :creator_id
     add_index :calendars, :recipient_id
-    add_index :calendars, [ :creator_id, :recipient_id, :year ], unique: true, name: 'index_calendars_on_creator_recipient_year'
+    add_index :calendars, [:creator_id, :recipient_id, :year], unique: true, name: "index_calendars_on_creator_recipient_year"
   end
 end

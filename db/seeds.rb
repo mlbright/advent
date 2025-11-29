@@ -11,23 +11,23 @@
 # Create sample users
 puts "Creating sample users..."
 
-admin = User.find_or_create_by!(email: 'admin@example.com') do |user|
-  user.password = 'password'
-  user.password_confirmation = 'password'
+admin = User.find_or_create_by!(email: "admin@example.com") do |user|
+  user.password = "password"
+  user.password_confirmation = "password"
   user.admin = true
 end
 puts "Created admin user: #{admin.email}"
 
-alice = User.find_or_create_by!(email: 'alice@example.com') do |user|
-  user.password = 'password'
-  user.password_confirmation = 'password'
+alice = User.find_or_create_by!(email: "alice@example.com") do |user|
+  user.password = "password"
+  user.password_confirmation = "password"
   user.admin = false
 end
 puts "Created user: #{alice.email}"
 
-bob = User.find_or_create_by!(email: 'bob@example.com') do |user|
-  user.password = 'password'
-  user.password_confirmation = 'password'
+bob = User.find_or_create_by!(email: "bob@example.com") do |user|
+  user.password = "password"
+  user.password_confirmation = "password"
   user.admin = false
 end
 puts "Created user: #{bob.email}"

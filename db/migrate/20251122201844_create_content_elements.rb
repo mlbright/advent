@@ -12,6 +12,6 @@ class CreateContentElements < ActiveRecord::Migration[8.1]
     end
 
     add_index :content_elements, :calendar_day_id
-    add_index :content_elements, [ :calendar_day_id, :position ]
+    add_index :content_elements, [:calendar_day_id, :position]
   end
 end

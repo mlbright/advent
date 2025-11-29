@@ -1,15 +1,15 @@
 class ContentElement < ApplicationRecord
   belongs_to :calendar_day
 
-  enum :element_type, { text: "text", image: "image", video: "video" }
+  enum :element_type, {text: "text", image: "image", video: "video"}
 
-  validates :element_type, presence: true, inclusion: { in: %w[text image video] }
-  validates :position, presence: true, numericality: { only_integer: true, greater_than: 0 }
+  validates :element_type, presence: true, inclusion: {in: %w[text image video]}
+  validates :position, presence: true, numericality: {only_integer: true, greater_than: 0}
   validates :text_content, presence: true, if: -> { element_type == "text" }
-  validates :url, presence: true, if: -> { element_type.in?([ "image", "video" ]) }
-  validates :url, format: { with: URI::DEFAULT_PARSER.make_regexp(%w[http https]), message: "must be a valid URL" }, if: -> { url.present? }
+  validates :url, presence: true, if: -> { element_type.in?(["image", "video"]) }
+  validates :url, format: {with: URI::DEFAULT_PARSER.make_regexp(%w[http https]), message: "must be a valid URL"}, if: -> { url.present? }
 
-  validate :url_accessible, if: -> { url.present? && element_type.in?([ "image", "video" ]) }
+  validate :url_accessible, if: -> { url.present? && element_type.in?(["image", "video"]) }
 
   before_create :set_position
 
@@ -30,7 +30,7 @@ class ContentElement < ApplicationRecord
     unless response.is_a?(Net::HTTPSuccess) || response.is_a?(Net::HTTPRedirection)
       errors.add(:url, "is not accessible (HTTP #{response.code})")
     end
-  rescue StandardError => e
+  rescue => e
     errors.add(:url, "could not be validated (#{e.message})")
   end
 end

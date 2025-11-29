@@ -1,7 +1,7 @@
 class CalendarsController < ApplicationController
-  before_action :set_calendar, only: [ :show, :edit, :update, :destroy, :shuffle ]
-  before_action :authorize_creator, only: [ :edit, :update, :destroy, :shuffle ]
-  before_action :authorize_viewer, only: [ :show ]
+  before_action :set_calendar, only: [:show, :edit, :update, :destroy, :shuffle]
+  before_action :authorize_creator, only: [:edit, :update, :destroy, :shuffle]
+  before_action :authorize_viewer, only: [:show]
 
   def index
     @received_calendars = current_user.received_calendars.includes(:creator).order(year: :desc, created_at: :desc).group_by(&:year)

@@ -1,9 +1,9 @@
 class CalendarDaysController < ApplicationController
   before_action :set_calendar
   before_action :set_calendar_day
-  before_action :authorize_viewer, only: [ :show ]
-  before_action :authorize_creator, only: [ :edit, :update, :delete_attachment, :swap_initiate, :swap_complete ]
-  before_action :check_day_unlocked, only: [ :show ]
+  before_action :authorize_viewer, only: [:show]
+  before_action :authorize_creator, only: [:edit, :update, :delete_attachment, :swap_initiate, :swap_complete]
+  before_action :check_day_unlocked, only: [:show]
 
   def show
     # Record the view if recipient is viewing

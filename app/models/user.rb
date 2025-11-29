@@ -6,7 +6,7 @@ class User < ApplicationRecord
   has_many :calendar_views, dependent: :destroy
   has_many :request_logs, dependent: :destroy
 
-  validates :email, presence: true, uniqueness: { case_sensitive: false }, format: { with: URI::MailTo::EMAIL_REGEXP }
+  validates :email, presence: true, uniqueness: {case_sensitive: false}, format: {with: URI::MailTo::EMAIL_REGEXP}
 
   before_save :downcase_email
 

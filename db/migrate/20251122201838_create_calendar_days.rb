@@ -8,6 +8,6 @@ class CreateCalendarDays < ActiveRecord::Migration[8.1]
     end
 
     add_index :calendar_days, :calendar_id
-    add_index :calendar_days, [ :calendar_id, :day_number ], unique: true
+    add_index :calendar_days, [:calendar_id, :day_number], unique: true
   end
 end

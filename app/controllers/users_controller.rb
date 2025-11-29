@@ -1,6 +1,6 @@
 class UsersController < ApplicationController
-  before_action :set_user, only: [ :edit_password, :update_password ]
-  before_action :require_admin, only: [ :index, :new, :create, :destroy ]
+  before_action :set_user, only: [:edit_password, :update_password]
+  before_action :require_admin, only: [:index, :new, :create, :destroy]
 
   def index
     @users = User.order(created_at: :desc)
@@ -12,7 +12,7 @@ class UsersController < ApplicationController
 
   def create
     @user = User.new(user_params)
-    
+
     if @user.save
       redirect_to users_path, notice: "User created successfully!"
     else
@@ -23,12 +23,12 @@ class UsersController < ApplicationController
 
   def destroy
     @user = User.find(params[:id])
-    
+
     if @user == current_user
       redirect_to users_path, alert: "You cannot delete your own account."
       return
     end
-    
+
     @user.destroy
     redirect_to users_path, notice: "User deleted successfully!"
   end

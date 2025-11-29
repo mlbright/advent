@@ -2,16 +2,24 @@ class RequestLogsController < ApplicationController
   before_action :require_admin
 
   def index
-    @page = params[:page].to_i > 0 ? params[:page].to_i : 1
+    @page = (params[:page].to_i > 0) ? params[:page].to_i : 1
+    @filter = params[:filter] || "unauthenticated"
     per_page = 50
     offset = (@page - 1) * per_page
 
-    @request_logs = RequestLog.includes(:user)
-                              .recent
-                              .limit(per_page)
-                              .offset(offset)
+    base_query = RequestLog.includes(:user).recent
 
-    @total_count = RequestLog.count
+    @request_logs = case @filter
+    when "authenticated"
+      base_query.authenticated
+    when "all"
+      base_query
+    else # "unauthenticated" is the default
+      base_query.unauthenticated
+    end
+
+    @total_count = @request_logs.count
+    @request_logs = @request_logs.limit(per_page).offset(offset)
     @total_pages = (@total_count.to_f / per_page).ceil
   end
 

@@ -1,7 +1,16 @@
 <div class="request-logs-index">
   <div class="page-header">
     <h1>Request Logs</h1>
-    <p class="text-muted">Viewing all incoming requests to the application</p>
+    <p class="text-muted">Viewing incoming requests to the application</p>
+  </div>
+
+  <div class="filter-controls">
+    <%= link_to "Unauthenticated", request_logs_path(filter: "unauthenticated"), 
+        class: "filter-btn #{@filter == 'unauthenticated' ? 'active' : ''}" %>
+    <%= link_to "Authenticated", request_logs_path(filter: "authenticated"), 
+        class: "filter-btn #{@filter == 'authenticated' ? 'active' : ''}" %>
+    <%= link_to "All Requests", request_logs_path(filter: "all"), 
+        class: "filter-btn #{@filter == 'all' ? 'active' : ''}" %>
   </div>
 
   <div class="table-responsive">
@@ -38,21 +47,21 @@
       <nav>
         <ul class="pagination">
           <% if @page > 1 %>
-            <li><%= link_to "Previous", request_logs_path(page: @page - 1), class: "page-link" %></li>
+            <li><%= link_to "Previous", request_logs_path(page: @page - 1, filter: @filter), class: "page-link" %></li>
           <% end %>
           
           <% (1..@total_pages).each do |page| %>
             <% if page == @page %>
               <li class="active"><span class="page-link"><%= page %></span></li>
             <% elsif (page - @page).abs <= 2 || page == 1 || page == @total_pages %>
-              <li><%= link_to page, request_logs_path(page: page), class: "page-link" %></li>
+              <li><%= link_to page, request_logs_path(page: page, filter: @filter), class: "page-link" %></li>
             <% elsif (page - @page).abs == 3 %>
               <li><span class="page-link">...</span></li>
             <% end %>
           <% end %>
           
           <% if @page < @total_pages %>
-            <li><%= link_to "Next", request_logs_path(page: @page + 1), class: "page-link" %></li>
+            <li><%= link_to "Next", request_logs_path(page: @page + 1, filter: @filter), class: "page-link" %></li>
           <% end %>
         </ul>
       </nav>
@@ -64,6 +73,42 @@
 <style>
 .request-logs-index {
   padding: 20px;
+}
+
+.filter-controls {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+}
+
+.filter-btn {
+  padding: 8px 16px;
+  text-decoration: none;
+  color: #495057;
+  background-color: white;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.filter-btn:hover {
+  background-color: #e9ecef;
+  border-color: #adb5bd;
+}
+
+.filter-btn.active {
+  background-color: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.filter-btn.active:hover {
+  background-color: #0056b3;
+  border-color: #0056b3;
 }
 
 .table-responsive {
