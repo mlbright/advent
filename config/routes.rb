@@ -9,6 +9,7 @@ Rails.application.routes.draw do
   patch "change-password", to: "users#update_password", as: :update_password
 
   # Admin routes
+  resources :users, only: [ :index, :new, :create, :destroy ]
   resources :request_logs, only: [ :index ]
 
   # Calendar routes

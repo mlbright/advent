@@ -1,5 +1,37 @@
 class UsersController < ApplicationController
-  before_action :set_user
+  before_action :set_user, only: [ :edit_password, :update_password ]
+  before_action :require_admin, only: [ :index, :new, :create, :destroy ]
+
+  def index
+    @users = User.order(created_at: :desc)
+  end
+
+  def new
+    @user = User.new
+  end
+
+  def create
+    @user = User.new(user_params)
+    
+    if @user.save
+      redirect_to users_path, notice: "User created successfully!"
+    else
+      flash.now[:alert] = @user.errors.full_messages.join(", ")
+      render :new, status: :unprocessable_entity
+    end
+  end
+
+  def destroy
+    @user = User.find(params[:id])
+    
+    if @user == current_user
+      redirect_to users_path, alert: "You cannot delete your own account."
+      return
+    end
+    
+    @user.destroy
+    redirect_to users_path, notice: "User deleted successfully!"
+  end
 
   def edit_password
     # Show password change form
@@ -28,5 +60,15 @@ class UsersController < ApplicationController
 
   def set_user
     @user = current_user
+  end
+
+  def require_admin
+    unless current_user&.admin?
+      redirect_to root_path, alert: "You must be an admin to access this page."
+    end
+  end
+
+  def user_params
+    params.require(:user).permit(:email, :password, :password_confirmation, :admin)
   end
 end

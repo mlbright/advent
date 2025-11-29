@@ -33,6 +33,7 @@
             <div class="navbar-user">
               <span>Welcome, <%= current_user.email %>!</span>
               <% if current_user.admin? %>
+                <%= link_to "Users", users_path, class: "btn btn-sm btn-info" %>
                 <%= link_to "Request Logs", request_logs_path, class: "btn btn-sm btn-info" %>
               <% end %>
               <%= link_to "Change Password", edit_password_path, class: "btn btn-sm btn-secondary" %>
