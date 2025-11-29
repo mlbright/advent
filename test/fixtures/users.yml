@@ -1,11 +1,12 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
+# Pre-computed bcrypt hash for 'password' with cost factor 4 for faster tests
 one:
   email: testuser1@example.com
-  password_digest: <%= BCrypt::Password.create('password') %>
+  password_digest: $2a$04$IuD6bQYbdFMl9/nV2ewNXezOYskW40fZAkVpy1.kbEdbftWP86llu
   admin: false
 
 two:
   email: testuser2@example.com
-  password_digest: <%= BCrypt::Password.create('password') %>
+  password_digest: $2a$04$IuD6bQYbdFMl9/nV2ewNXezOYskW40fZAkVpy1.kbEdbftWP86llu
   admin: false
