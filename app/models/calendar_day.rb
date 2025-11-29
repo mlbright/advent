@@ -36,6 +36,36 @@ class CalendarDay < ApplicationRecord
     (content_type == "image" && image_file.attached?) || (content_type == "video" && video_file.attached?)
   end
 
+  # Auto-detect content type from URL
+  def self.detect_content_type_from_url(url)
+    return nil if url.blank?
+
+    uri = URI.parse(url)
+
+    # Check for video hosting platforms
+    return "video" if uri.host =~ /(youtube\.com|youtu\.be|vimeo\.com|dailymotion\.com|twitch\.tv)/i
+
+    # Check file extension
+    path = uri.path.downcase
+    return "image" if path =~ /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i
+    return "video" if path =~ /\.(mp4|mov|avi|webm|ogg|mkv|flv|wmv)$/i
+
+    nil
+  rescue URI::InvalidURIError
+    nil
+  end
+
+  # Auto-detect content type from uploaded file
+  def self.detect_content_type_from_file(file)
+    return nil unless file
+
+    content_type = file.content_type
+    return "image" if content_type&.start_with?("image/")
+    return "video" if content_type&.start_with?("video/")
+
+    nil
+  end
+
   def swap_with(other_day)
     return false if other_day.nil? || other_day.calendar_id != calendar_id
 

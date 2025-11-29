@@ -20,17 +20,38 @@ class CalendarDaysController < ApplicationController
   end
 
   def update
-    # Auto-correct content_type if a file is uploaded that doesn't match
-    if params[:calendar_day][:image_file].present?
-      params[:calendar_day][:content_type] = "image"
-    elsif params[:calendar_day][:video_file].present?
-      params[:calendar_day][:content_type] = "video"
+    # Handle single media_file upload and route to appropriate attachment
+    if params[:calendar_day][:media_file].present?
+      media_file = params[:calendar_day][:media_file]
+      detected_type = CalendarDay.detect_content_type_from_file(media_file)
+
+      if detected_type == "image"
+        params[:calendar_day][:image_file] = media_file
+        params[:calendar_day].delete(:media_file)
+      elsif detected_type == "video"
+        params[:calendar_day][:video_file] = media_file
+        params[:calendar_day].delete(:media_file)
+      end
     end
 
-    # Only purge opposite-type attachments if NOT uploading a new file in this request
-    if params[:calendar_day][:content_type] == "image" && @day.video_file.attached? && !params[:calendar_day][:image_file].present?
+    # Auto-detect content_type from uploaded files or URL
+    detected_type = nil
+
+    if params[:calendar_day][:image_file].present?
+      detected_type = CalendarDay.detect_content_type_from_file(params[:calendar_day][:image_file])
+    elsif params[:calendar_day][:video_file].present?
+      detected_type = CalendarDay.detect_content_type_from_file(params[:calendar_day][:video_file])
+    elsif params[:calendar_day][:url].present?
+      detected_type = CalendarDay.detect_content_type_from_url(params[:calendar_day][:url])
+    end
+
+    # Set the content_type if detected
+    params[:calendar_day][:content_type] = detected_type if detected_type.present?
+
+    # Purge opposite-type attachments based on detected content type
+    if detected_type == "image" && @day.video_file.attached?
       @day.video_file.purge
-    elsif params[:calendar_day][:content_type] == "video" && @day.image_file.attached? && !params[:calendar_day][:video_file].present?
+    elsif detected_type == "video" && @day.image_file.attached?
       @day.image_file.purge
     end
 
@@ -117,6 +138,6 @@ class CalendarDaysController < ApplicationController
   end
 
   def calendar_day_params
-    params.require(:calendar_day).permit(:content_type, :title, :description, :url, :image_file, :video_file)
+    params.require(:calendar_day).permit(:content_type, :title, :description, :url, :image_file, :video_file, :media_file)
   end
 end
