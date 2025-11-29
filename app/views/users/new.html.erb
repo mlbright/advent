@@ -23,13 +23,15 @@
           placeholder: "Confirm password" %>
     </div>
 
-    <div class="form-group">
-      <div class="form-check">
-        <%= form.check_box :admin, class: "form-check-input" %>
-        <%= form.label :admin, "Make this user an administrator", class: "form-check-label" %>
+    <% if current_user&.admin? %>
+      <div class="form-group">
+        <div class="form-check">
+          <%= form.check_box :admin, class: "form-check-input" %>
+          <%= form.label :admin, "Make this user an administrator", class: "form-check-label" %>
+        </div>
+        <small class="form-text">Administrators can manage users and view request logs</small>
       </div>
-      <small class="form-text">Administrators can manage users and view request logs</small>
-    </div>
+    <% end %>
 
     <div class="form-actions">
       <%= form.submit "Create User", class: "btn btn-primary" %>

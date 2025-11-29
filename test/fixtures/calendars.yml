@@ -4,12 +4,12 @@ one:
   title: MyString
   description: MyText
   creator_id: 1
-  recipient_id: 1
-  year: 1
+  recipient_id: 2
+  year: 2025
 
 two:
-  title: MyString
+  title: MyString2
   description: MyText
   creator_id: 1
-  recipient_id: 1
-  year: 1
+  recipient_id: 2
+  year: 2024
