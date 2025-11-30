@@ -24,9 +24,6 @@
       <%= form.url_field :url, class: "form-control", id: "url_field",
           placeholder: "https://youtube.com/watch?v=... or https://example.com/image.jpg" %>
       <small class="form-text">Supported: YouTube, Vimeo videos, and image URLs (JPG, PNG, GIF, WEBP)</small>
-      <div id="detected_type_url" style="margin-top: 0.5rem; display: none;">
-        <span class="badge badge-info"><span id="detected_type_url_text"></span></span>
-      </div>
     </div>
 
     <div id="upload_or_separator">
@@ -39,9 +36,6 @@
           accept: "image/jpeg,image/jpg,image/png,image/gif,image/webp,video/mp4,video/quicktime,video/x-msvideo,video/webm,video/ogg", 
           id: "media_file_field" %>
       <small class="form-text">Images: JPEG, PNG, GIF, WEBP (max 10MB) | Videos: MP4, MOV, AVI, WEBM, OGG (max 100MB)</small>
-      <div id="detected_type_file" style="margin-top: 0.5rem; display: none;">
-        <span class="badge badge-info"><span id="detected_type_file_text"></span></span>
-      </div>
       <% if @day.image_file.attached? %>
         <div class="current-file-info" style="margin-top: 0.5rem;">
           <p class="current-file">Current file: <%= @day.image_file.filename %> (<%= number_to_human_size(@day.image_file.byte_size) %>)</p>
@@ -95,74 +89,11 @@
       const fileUploadGroup = document.getElementById('file_upload_group');
       const uploadOrSeparator = document.getElementById('upload_or_separator');
       const mediaFileField = document.getElementById('media_file_field');
-      const detectedTypeUrl = document.getElementById('detected_type_url');
-      const detectedTypeUrlText = document.getElementById('detected_type_url_text');
-      const detectedTypeFile = document.getElementById('detected_type_file');
-      const detectedTypeFileText = document.getElementById('detected_type_file_text');
-      
-      function detectContentTypeFromUrl(url) {
-        if (!url) return null;
-        
-        try {
-          const urlObj = new URL(url);
-          
-          // Check for video hosting platforms
-          if (/(youtube\.com|youtu\.be|vimeo\.com|dailymotion\.com|twitch\.tv)/i.test(urlObj.hostname)) {
-            return 'video';
-          }
-          
-          // Check file extension
-          const path = urlObj.pathname.toLowerCase();
-          if (/\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(path)) {
-            return 'image';
-          }
-          if (/\.(mp4|mov|avi|webm|ogg|mkv|flv|wmv)$/i.test(path)) {
-            return 'video';
-          }
-        } catch (e) {
-          return null;
-        }
-        
-        return null;
-      }
-      
-      function detectContentTypeFromFile(file) {
-        if (!file) return null;
-        
-        const type = file.type;
-        if (type.startsWith('image/')) return 'image';
-        if (type.startsWith('video/')) return 'video';
-        
-        return null;
-      }
       
       function updateFileFields() {
         const urlValue = urlField.value.trim();
         const hasUrl = urlValue !== '';
         const hasFile = mediaFileField && mediaFileField.files.length > 0;
-        
-        // Detect and show content type from URL only if URL is provided and type is detected
-        detectedTypeUrl.style.display = 'none';
-        detectedTypeUrlText.textContent = '';
-        if (hasUrl) {
-          const detectedType = detectContentTypeFromUrl(urlValue);
-          if (detectedType) {
-            detectedTypeUrl.style.display = 'block';
-            detectedTypeUrlText.textContent = 'Detected: ' + detectedType.charAt(0).toUpperCase() + detectedType.slice(1);
-          }
-        }
-        
-        // Detect and show content type from file only if file is uploaded and type is detected
-        detectedTypeFile.style.display = 'none';
-        detectedTypeFileText.textContent = '';
-        if (hasFile) {
-          const file = mediaFileField.files[0];
-          const detectedType = detectContentTypeFromFile(file);
-          if (detectedType) {
-            detectedTypeFile.style.display = 'block';
-            detectedTypeFileText.textContent = 'Detected: ' + detectedType.charAt(0).toUpperCase() + detectedType.slice(1);
-          }
-        }
         
         // Show/hide upload field based on what's filled
         if (hasUrl) {
