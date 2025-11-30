@@ -41,21 +41,19 @@
     <% if @day.has_content? %>
       <div class="content-item">
         <% if @day.content_type == 'image' %>
-          <div class="image-content" style="max-width: 800px; margin: 0 auto;">
-            <% if @day.image_file.attached? %>
-              <%= image_tag @day.image_file.variant(resize_to_limit: [1200, 1200]), alt: @day.title, style: "width: 100%; height: auto; border-radius: 8px; display: block;" %>
-            <% elsif @day.url.present? %>
-              <%= UrlEmbedder.embed(@day.url, 'image') %>
-            <% end %>
-          </div>
+          <% if @day.image_file.attached? %>
+            <%= image_tag @day.image_file.variant(resize_to_limit: [1200, 1200]), alt: @day.title, class: "embedded-image" %>
+          <% elsif @day.url.present? %>
+            <%= UrlEmbedder.embed(@day.url, 'image') %>
+          <% end %>
         <% elsif @day.content_type == 'video' %>
-          <div class="video-content" style="max-width: 800px; margin: 0 auto;">
-            <% if @day.video_file.attached? %>
-              <%= video_tag @day.video_file, controls: true, style: "width: 100%; height: auto; border-radius: 8px; display: block;" %>
-            <% elsif @day.url.present? %>
-              <%= UrlEmbedder.embed(@day.url, 'video') %>
-            <% end %>
-          </div>
+          <% if @day.video_file.attached? %>
+            <div class="embed-container">
+              <%= video_tag @day.video_file, controls: true, style: "position: absolute; top: 0; left: 0; width: 100%; height: 100%;" %>
+            </div>
+          <% elsif @day.url.present? %>
+            <%= UrlEmbedder.embed(@day.url, 'video') %>
+          <% end %>
         <% end %>
         
         <% if @day.description.present? %>
