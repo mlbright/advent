@@ -6,7 +6,7 @@ Inspired by Helen Bright.
 
 ## Features
 
-- **User Authentication**: Secure login system with user management scripts
+- **Admin & User Roles**: Admin users can manage all users; regular users can create calendars
 - **Multi-tenant Architecture**: Each user can create calendars for other users
 - **24-Day Advent Calendars**: December 1-24 with rich content
 - **Content Types**:
@@ -16,20 +16,23 @@ Inspired by Helen Bright.
 - **Flexible Content Sources**: Upload files directly or provide URLs for external content
 - **Smart Unlocking**: Days unlock only in December based on the current date
 - **Creator Preview Mode**: Calendar creators can view and edit all days year-round
-- **View Tracking**: Track which days recipients have viewed
+- **View Tracking**: Track which days recipients have viewed with timestamps
 - **Year Scoping**: Create calendars for any year starting from 2025
 - **One Calendar Per User-Year**: Each creator can only make one calendar per recipient per year
 - **Calendar Shuffling**: Randomize the visual display order (position) of days (available until November 30th)
 - **Day Swapping**: Exchange content between any two days in a calendar
 - **File Management**: Upload images (max 10MB) and videos (max 100MB) with support for multiple formats
+- **Request Logging**: Track user requests with IP address, user agent, and timestamp
 
 ## Technology Stack
 
 - **Rails 8.1.1** with Hotwire (Turbo + Stimulus)
-- **SQLite3** database with Active Storage for file uploads
-- **Eastern Time** zone
-- **bcrypt** for authentication
+- **SQLite3** database (primary, cache, queue, and cable databases in production)
+- **Solid Cache, Solid Queue, Solid Cable** for database-backed cache, jobs, and WebSockets
+- **image_processing** gem with libvips for image transformations
 - **Content Security Policy** configured for YouTube/Vimeo embeds
+- **Puma** web server
+- **Propshaft** for asset pipeline
 
 ## Getting Started
 
@@ -66,12 +69,12 @@ bin/rails db:migrate
 bin/rails db:seed
 ```
 
-3. Start the server:
+4. Start the server:
 ```bash
 bin/rails server
 ```
 
-4. Visit `http://localhost:3000`
+5. Visit `http://localhost:3000`
 
 ### Sample Users
 
@@ -80,6 +83,8 @@ After running `db:seed`, you can log in with:
 - **Admin**: `admin@example.com` / `password`
 - **Alice**: `alice@example.com` / `password`
 - **Bob**: `bob@example.com` / `password`
+
+The admin user has access to user management features including creating, editing, and deleting users.
 
 ## Usage
 
@@ -94,7 +99,22 @@ After running `db:seed`, you can log in with:
 5. Confirm your new password
 6. Click "Update Password"
 
-### Managing Users
+### Admin Features
+
+Admin users have access to additional features:
+
+**User Management:**
+- View all users (`/users`)
+- Create new users with optional admin privileges
+- Edit user passwords
+- Delete users (except themselves and users who are recipients of calendars)
+
+**Request Logs:**
+- View all HTTP requests (`/request_logs`)
+- Track user activity with IP addresses and user agents
+- Monitor access patterns
+
+### Managing Users (Shell Scripts)
 
 The application includes convenient shell scripts for user management:
 
@@ -125,15 +145,23 @@ User.create!(
   password_confirmation: 'secure_password'
 )
 
+# Create admin user
+User.create!(
+  email: 'admin@example.com',
+  password: 'secure_password',
+  password_confirmation: 'secure_password',
+  admin: true
+)
+
 # Change password
 user = User.find_by(email: 'user@example.com')
 user.password = 'new_password'
 user.password_confirmation = 'new_password'
 user.save!
 
-# Delete user
+# Delete user (only if not a recipient of any calendars)
 user = User.find_by(email: 'user@example.com')
-user.destroy
+user.destroy if user.can_be_deleted?
 ```
 
 ### Creating a Calendar
@@ -143,9 +171,10 @@ user.destroy
 3. Fill in:
    - Title (e.g., "My Christmas Adventure 2025")
    - Description/tagline (optional)
-   - Select a recipient
+   - Select a recipient (any user except yourself)
    - Choose the year (2025+)
 4. Submit to create calendar with 24 empty days
+5. The calendar days are automatically shuffled upon creation
 
 ### Adding Content to Days
 
@@ -163,6 +192,11 @@ user.destroy
 - **Videos**: MP4, MOV, AVI, WEBM, OGG (max 100MB)
 - **URLs**: YouTube, Vimeo, or direct links to media files
 
+**Content Rules:**
+- Each day can have only one content source (URL or upload, not both)
+- You can switch between URL and upload by editing the day
+- Previous content is replaced when you add new content
+
 ### Managing Calendar Days
 
 **Shuffle Calendar** (Available until November 30th):
@@ -170,24 +204,28 @@ user.destroy
 - Randomizes the visual position of days in the grid
 - Each day keeps its original number and content
 - Useful for surprising recipients with a non-sequential layout
+- Cannot shuffle after November 30th of the calendar year
 
 **Swap Days**:
 1. Click "Swap" button on a day card
 2. Select which day to swap with
 3. Preview both days' content
 4. Confirm to exchange all content between the two days
+5. Swapping exchanges: title, description, URL, content type, and attached files
 
 **Delete Attachments**:
 - Use "Delete Uploaded Image/Video" button on edit page
 - Removes uploaded files while keeping other day data
+- Allows you to switch from uploaded file to URL or vice versa
 
 ### Viewing Calendars
 
 **As Recipient:**
-- Days unlock automatically in December when the date matches
+- Days unlock automatically in December when the date matches the day number
 - Click unlocked days to view content
 - Locked days show a 🔒 icon
 - Viewed days show a ✓ checkmark
+- Your views are tracked with timestamps
 
 **As Creator:**
 - All days are unlocked year-round in "Creator Preview Mode"
@@ -196,6 +234,7 @@ user.destroy
 - Shuffle calendar layout (until November 30th)
 - Swap content between days
 - Delete uploaded files
+- View tracking shows which days the recipient has viewed
 
 ## URL Embedding and File Handling
 
@@ -203,14 +242,22 @@ The application supports both URL-based content and file uploads:
 
 **Automatic URL Detection:**
 - **YouTube**: `youtube.com/watch?v=...` or `youtu.be/...`
+  - Supports time parameters (e.g., `?t=30s`, `?t=1m30s`)
+  - Uses YouTube's privacy-enhanced mode (youtube-nocookie.com)
 - **Vimeo**: `vimeo.com/123456`
 - **Direct Media URLs**: URLs ending in supported image/video formats
+
+**YouTube Time Parameters:**
+- Preserves timestamp from YouTube share links
+- Supports formats: `30s`, `1m30s`, `1h2m3s`, or plain seconds
+- Automatically converts to YouTube embed format
 
 **File Uploads:**
 - **Images**: JPEG, JPG, PNG, GIF, WEBP (max 10MB)
 - **Videos**: MP4, MOV, AVI, WEBM, OGG (max 100MB)
 - Files stored using Active Storage with SQLite backend
 - Automatic content type validation
+- URL accessibility validation (HEAD request)
 
 **Content Rules:**
 - Each day can have only one content source (URL or upload, not both)
@@ -221,54 +268,148 @@ The application supports both URL-based content and file uploads:
 
 ### Models
 
-- **User**: Authentication with has_secure_password
-- **Calendar**: Belongs to creator and recipient, has many calendar_days
-- **CalendarDay**: 24 days per calendar (auto-generated on creation)
+- **User**: 
+  - Authentication with `has_secure_password`
+  - Admin flag for privileged operations
+  - Email uniqueness (case-insensitive)
+  - Has many created calendars, received calendars, calendar views, and request logs
+  - Cannot be deleted if they are a recipient of any calendars
+
+- **Calendar**: 
+  - Belongs to creator (User) and recipient (User)
+  - Has many calendar_days (24 days auto-generated on creation)
+  - Has many calendar_views for tracking
+  - Validates uniqueness of creator + recipient + year
+  - Year must be >= 2025
+  - Days auto-shuffled on creation
+
+- **CalendarDay**: 
+  - Belongs to calendar
+  - 24 days per calendar (day_number 1-24)
   - `day_number`: The actual day (1-24)
   - `display_position`: Visual position in grid (for shuffling)
   - `content_type`: 'image' or 'video'
   - `title`, `description`, `url`: Content metadata
   - Attachments: `image_file` and `video_file` via Active Storage
-- **CalendarView**: Tracks which days recipients have viewed
+  - Validates only one content source (URL or file)
+  - URL accessibility validation
+
+- **CalendarView**: 
+  - Tracks when recipients view specific days
+  - Belongs to calendar and user
+  - Records `viewed_at` timestamp
+  - Unique constraint on calendar + user + day_number
+
+- **RequestLog**: 
+  - Tracks HTTP requests
+  - Records user_id, IP address, user agent, path, and method
+  - Indexed on created_at, ip_address, and user_id
 
 ### Key Business Logic
 
 - `Calendar#day_unlocked_for?(day_number, user)`: Determines if a day is accessible
   - Creators: Always unlocked
-  - Recipients: Only in December when `current_day >= day_number`
+  - Recipients: Only in December of the calendar year when `current_day >= day_number`
 
-- `Calendar#can_shuffle?`: Checks if shuffling is allowed (until November 30th)
+- `Calendar#can_shuffle?`: Checks if shuffling is allowed
+  - Returns true until November 30th (inclusive) of the calendar year
+  - After November 30th, shuffling is locked
 
-- `Calendar#shuffle_days`: Randomizes display_position of all days without changing content
+- `Calendar#shuffle_days`: Randomizes display_position of all days
+  - Generates shuffled positions (1-24)
+  - Updates display_position without changing content
+  - Uses transaction for atomicity
 
 - `CalendarDay#swap_with(other_day)`: Exchanges all content between two days
   - Swaps title, description, URL, content_type
-  - Properly handles file attachment transfers
+  - Properly handles file attachment transfers using blob references
   - Uses transaction for atomicity
+  - Validates both days belong to same calendar
+
+- `CalendarDay.detect_content_type_from_url(url)`: Auto-detects content type
+  - Checks for video platforms (YouTube, Vimeo, etc.)
+  - Checks file extensions
+  - Returns 'image' or 'video'
 
 - `UrlEmbedder.embed(url, element_type)`: Converts URLs to embedded HTML
   - Extracts YouTube/Vimeo IDs
   - Generates responsive iframes
   - Handles images with proper sizing
+  - Preserves YouTube time parameters
+  - Uses privacy-enhanced YouTube embeds
+
+### Controllers
+
+- **ApplicationController**: Base controller with authentication
+  - `current_user`: Returns logged-in user
+  - `logged_in?`: Checks if user is authenticated
+  - `viewing_as_creator?`: Checks if current user is calendar creator
+  - `require_login`: Before action for authentication
+
+- **SessionsController**: Handles login/logout
+  - Creates and destroys user sessions
+  - Request logging on login
+
+- **UsersController**: User management
+  - Admin-only: index, new, create, edit, update, destroy
+  - All users: edit_password, update_password
+  - Password change requires current password verification
+  - Cannot delete self or users who are recipients
+
+- **CalendarsController**: Calendar CRUD
+  - Lists calendars (created and received separately)
+  - Create, update, delete calendars
+  - Shuffle action (POST /calendars/:id/shuffle)
+
+- **CalendarDaysController**: Day management
+  - Show, edit, update individual days
+  - Swap actions (swap_initiate, swap_complete)
+  - Delete attachment action
+  - Nested under calendars
+
+- **CalendarViewsController**: View tracking
+  - Create action to record when recipient views a day
+
+- **RequestLogsController**: Admin request monitoring
+  - Admin-only index action
 
 ### Security
 
-- All routes require authentication except login
+- All routes require authentication except login and health check
 - Authorization checks on calendars (creator/recipient only)
+- Admin-only routes for user management and request logs
 - Content Security Policy allows YouTube/Vimeo iframes
 - URL validation with HEAD requests to verify accessibility
 - File upload validation (type and size limits)
 - CSRF protection enabled
 - Secure password hashing with bcrypt
+- Users cannot delete themselves
+- Users who are recipients of calendars cannot be deleted
+
+### Database Schema
+
+**Primary Database:**
+- `users`: email, password_digest, admin flag
+- `calendars`: title, description, year, creator_id, recipient_id
+- `calendar_days`: day_number, display_position, content_type, title, description, url
+- `calendar_views`: calendar_id, user_id, day_number, viewed_at
+- `request_logs`: user_id, ip_address, user_agent, path, request_method
+- Active Storage tables for file attachments
+
+**Production Additional Databases:**
+- `cache`: Solid Cache for Rails.cache
+- `queue`: Solid Queue for Active Job
+- `cable`: Solid Cable for Action Cable
 
 ## Customization
 
 ### Time Zone
 
-The app uses Eastern Time. To change, edit `config/application.rb`:
+The app uses Eastern Time (US & Canada). To change, edit `config/application.rb`:
 
 ```ruby
 config.time_zone = "Your/Timezone"
+config.active_record.default_timezone = :local
 ```
 
 ### December-Only Unlocking
@@ -278,7 +419,7 @@ To allow testing year-round, modify `Calendar#day_unlocked_for?` in `app/models/
 ```ruby
 def day_unlocked_for?(day_number, user)
   return true if creator == user
-  # Remove month check for testing:
+  # Remove month and year checks for testing:
   Time.zone.now.day >= day_number
 end
 ```
@@ -315,6 +456,14 @@ if video_file.byte_size > 200.megabytes  # Change to 200MB
 end
 ```
 
+### Password Requirements
+
+Password minimum length is validated by Rails' `has_secure_password` (default 6 characters). To change it, add to `app/models/user.rb`:
+
+```ruby
+validates :password, length: { minimum: 8 }, if: -> { password.present? }
+```
+
 ## Testing
 
 Run the test suite:
@@ -322,6 +471,19 @@ Run the test suite:
 ```bash
 bin/rails test
 bin/rails test:system
+```
+
+Additional development tools:
+
+```bash
+# Run security audit
+bin/bundler-audit
+
+# Run static analysis
+bin/brakeman
+
+# Run linter
+bin/rubocop
 ```
 
 ## Deployment
@@ -397,7 +559,7 @@ After pulling new code or making changes:
 
 ```bash
 # Navigate to application directory
-cd /home/mbright/advent
+cd /path/to/advent
 
 # Pull latest changes
 git pull
@@ -435,13 +597,49 @@ sudo journalctl -u advent-calendar -n 50 --no-pager
 ls -la /etc/advent-calendar.env
 
 # Test the application manually
-cd /home/mbright/advent
+cd /path/to/advent
 RAILS_ENV=production bundle exec puma -C config/puma.rb -b tcp://0.0.0.0:3000
 ```
 
 ### Docker/Kamal
 
 The application also includes Kamal configuration for Docker deployment. See `config/deploy.yml` for details.
+
+## Project Structure
+
+```
+advent/
+├── app/
+│   ├── controllers/      # Request handling
+│   ├── models/           # Business logic and database models
+│   ├── views/            # HTML templates
+│   ├── helpers/          # View helpers
+│   ├── services/         # Service objects (UrlEmbedder)
+│   ├── javascript/       # Stimulus controllers
+│   └── assets/           # Images and stylesheets
+├── bin/                  # Executables and scripts
+│   ├── rails, rake       # Rails commands
+│   ├── bundler-audit     # Security audit
+│   ├── brakeman          # Static analysis
+│   └── rubocop           # Linting
+├── config/               # Application configuration
+│   ├── routes.rb         # URL routing
+│   ├── database.yml      # Database configuration
+│   ├── application.rb    # Rails configuration
+│   └── environments/     # Environment-specific config
+├── db/                   # Database files
+│   ├── migrate/          # Database migrations
+│   ├── seeds.rb          # Sample data
+│   └── schema.rb         # Current database schema
+├── script/               # Shell scripts for user management
+│   ├── add-user.sh
+│   ├── change-password.sh
+│   └── delete-user.sh
+├── storage/              # SQLite databases and uploaded files
+├── test/                 # Test suite
+├── Gemfile               # Ruby dependencies
+└── README.md             # This file
+```
 
 ## License
 
