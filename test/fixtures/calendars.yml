@@ -3,13 +3,13 @@
 one:
   title: MyString
   description: MyText
-  creator_id: 1
-  recipient_id: 2
+  creator: one
+  recipient: two
   year: 2025
 
 two:
   title: MyString2
   description: MyText
-  creator_id: 1
-  recipient_id: 2
+  creator: one
+  recipient: two
   year: 2024
