@@ -25,7 +25,7 @@
           placeholder: "https://youtube.com/watch?v=... or https://example.com/image.jpg" %>
       <small class="form-text">Supported: YouTube, Vimeo videos, and image URLs (JPG, PNG, GIF, WEBP)</small>
       <div id="detected_type_url" style="margin-top: 0.5rem; display: none;">
-        <span class="badge badge-info">Detected: <span id="detected_type_url_text"></span></span>
+        <span class="badge badge-info"><span id="detected_type_url_text"></span></span>
       </div>
     </div>
 
@@ -40,15 +40,15 @@
           id: "media_file_field" %>
       <small class="form-text">Images: JPEG, PNG, GIF, WEBP (max 10MB) | Videos: MP4, MOV, AVI, WEBM, OGG (max 100MB)</small>
       <div id="detected_type_file" style="margin-top: 0.5rem; display: none;">
-        <span class="badge badge-info">Detected: <span id="detected_type_file_text"></span></span>
+        <span class="badge badge-info"><span id="detected_type_file_text"></span></span>
       </div>
       <% if @day.image_file.attached? %>
-        <div class="current-file-info">
+        <div class="current-file-info" style="margin-top: 0.5rem;">
           <p class="current-file">Current file: <%= @day.image_file.filename %> (<%= number_to_human_size(@day.image_file.byte_size) %>)</p>
         </div>
       <% end %>
       <% if @day.video_file.attached? %>
-        <div class="current-file-info">
+        <div class="current-file-info" style="margin-top: 0.5rem;">
           <p class="current-file">Current file: <%= @day.video_file.filename %> (<%= number_to_human_size(@day.video_file.byte_size) %>)</p>
         </div>
       <% end %>
@@ -141,31 +141,27 @@
         const hasUrl = urlValue !== '';
         const hasFile = mediaFileField && mediaFileField.files.length > 0;
         
-        // Detect and show content type from URL only if URL is provided
+        // Detect and show content type from URL only if URL is provided and type is detected
+        detectedTypeUrl.style.display = 'none';
+        detectedTypeUrlText.textContent = '';
         if (hasUrl) {
           const detectedType = detectContentTypeFromUrl(urlValue);
           if (detectedType) {
             detectedTypeUrl.style.display = 'block';
-            detectedTypeUrlText.textContent = detectedType.charAt(0).toUpperCase() + detectedType.slice(1);
-          } else {
-            detectedTypeUrl.style.display = 'none';
+            detectedTypeUrlText.textContent = 'Detected: ' + detectedType.charAt(0).toUpperCase() + detectedType.slice(1);
           }
-        } else {
-          detectedTypeUrl.style.display = 'none';
         }
         
-        // Detect and show content type from file only if file is uploaded
+        // Detect and show content type from file only if file is uploaded and type is detected
+        detectedTypeFile.style.display = 'none';
+        detectedTypeFileText.textContent = '';
         if (hasFile) {
           const file = mediaFileField.files[0];
           const detectedType = detectContentTypeFromFile(file);
           if (detectedType) {
             detectedTypeFile.style.display = 'block';
-            detectedTypeFileText.textContent = detectedType.charAt(0).toUpperCase() + detectedType.slice(1);
-          } else {
-            detectedTypeFile.style.display = 'none';
+            detectedTypeFileText.textContent = 'Detected: ' + detectedType.charAt(0).toUpperCase() + detectedType.slice(1);
           }
-        } else {
-          detectedTypeFile.style.display = 'none';
         }
         
         // Show/hide upload field based on what's filled
