@@ -10,6 +10,15 @@ class User < ApplicationRecord
 
   before_save :downcase_email
 
+  def can_be_deleted?
+    received_calendars.empty?
+  end
+
+  def deletion_blocked_reason
+    return nil if can_be_deleted?
+    "User is the recipient of #{received_calendars.count} calendar(s) and cannot be deleted"
+  end
+
   private
 
   def downcase_email

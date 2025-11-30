@@ -29,13 +29,18 @@
             </td>
             <td><%= user.created_at.strftime("%Y-%m-%d %H:%M") %></td>
             <td>
-              <% if user != current_user %>
-                <%= button_to "Delete", user_path(user), method: :delete, 
-                    class: "btn btn-sm btn-danger", 
-                    data: { confirm: "Are you sure you want to delete #{user.email}?" } %>
-              <% else %>
-                <span class="text-muted">Current User</span>
-              <% end %>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <%= link_to "Change Password", edit_user_path(user), class: "btn btn-sm btn-secondary" %>
+                <% if user == current_user %>
+                  <span class="text-muted">(Current User)</span>
+                <% elsif !user.can_be_deleted? %>
+                  <span class="text-muted" title="<%= user.deletion_blocked_reason %>">(Recipient)</span>
+                <% else %>
+                  <%= button_to "Delete", user_path(user), method: :delete, 
+                      class: "btn btn-sm btn-danger", 
+                      data: { confirm: "Are you sure you want to delete #{user.email}?" } %>
+                <% end %>
+              </div>
             </td>
           </tr>
         <% end %>

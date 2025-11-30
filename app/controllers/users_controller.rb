@@ -1,6 +1,7 @@
 class UsersController < ApplicationController
   before_action :set_user, only: [ :edit_password, :update_password ]
-  before_action :require_admin, only: [ :index, :new, :create, :destroy ]
+  before_action :set_admin_user, only: [ :edit, :update ]
+  before_action :require_admin, only: [ :index, :new, :create, :edit, :update, :destroy ]
 
   def index
     @users = User.order(created_at: :desc)
@@ -21,11 +22,33 @@ class UsersController < ApplicationController
     end
   end
 
+  def edit
+    # Show password change form for admin
+  end
+
+  def update
+    if params[:user][:password].present?
+      if @user.update(admin_password_params)
+        redirect_to users_path, notice: "Password updated successfully for #{@user.email}!"
+      else
+        flash.now[:alert] = @user.errors.full_messages.join(", ")
+        render :edit, status: :unprocessable_entity
+      end
+    else
+      redirect_to users_path, alert: "Password cannot be blank"
+    end
+  end
+
   def destroy
     @user = User.find(params[:id])
 
     if @user == current_user
       redirect_to users_path, alert: "You cannot delete your own account."
+      return
+    end
+
+    unless @user.can_be_deleted?
+      redirect_to users_path, alert: @user.deletion_blocked_reason
       return
     end
 
@@ -62,6 +85,10 @@ class UsersController < ApplicationController
     @user = current_user
   end
 
+  def set_admin_user
+    @user = User.find(params[:id])
+  end
+
   def require_admin
     unless current_user&.admin?
       redirect_to root_path, alert: "You must be an admin to access this page."
@@ -72,5 +99,9 @@ class UsersController < ApplicationController
     permitted = [ :email, :password, :password_confirmation ]
     permitted << :admin if current_user&.admin?
     params.require(:user).permit(permitted)
+  end
+
+  def admin_password_params
+    params.require(:user).permit(:password, :password_confirmation)
   end
 end
