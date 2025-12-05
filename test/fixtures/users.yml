@@ -5,8 +5,16 @@ one:
   email: testuser1@example.com
   password_digest: $2a$04$IuD6bQYbdFMl9/nV2ewNXezOYskW40fZAkVpy1.kbEdbftWP86llu
   admin: false
+  ntfy_topic:
 
 two:
   email: testuser2@example.com
   password_digest: $2a$04$IuD6bQYbdFMl9/nV2ewNXezOYskW40fZAkVpy1.kbEdbftWP86llu
   admin: false
+  ntfy_topic:
+
+admin:
+  email: admin@example.com
+  password_digest: $2a$04$IuD6bQYbdFMl9/nV2ewNXezOYskW40fZAkVpy1.kbEdbftWP86llu
+  admin: true
+  ntfy_topic: test-advent-notifications

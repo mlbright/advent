@@ -10,6 +10,7 @@ class SessionsController < ApplicationController
 
     if user&.authenticate(params[:password])
       session[:user_id] = user.id
+      send_login_notification(user)
       redirect_to root_path, notice: "Logged in successfully!"
     else
       flash.now[:alert] = "Invalid email or password"
@@ -20,5 +21,16 @@ class SessionsController < ApplicationController
   def destroy
     session[:user_id] = nil
     redirect_to login_path, notice: "Logged out successfully!"
+  end
+
+  private
+
+  def send_login_notification(user)
+    ntfy_topic = User.where(admin: true).where.not(ntfy_topic: [ nil, "" ]).pick(:ntfy_topic)
+    return if ntfy_topic.blank?
+
+    NtfyNotifier.notify_login(user, topic: ntfy_topic)
+  rescue StandardError => e
+    Rails.logger.error "Failed to send login notification: #{e.message}"
   end
 end

@@ -11,6 +11,8 @@ Rails.application.routes.draw do
   # Admin routes
   resources :users, only: [ :index, :new, :create, :edit, :update, :destroy ]
   resources :request_logs, only: [ :index ]
+  get "settings", to: "settings#edit", as: :settings
+  patch "settings", to: "settings#update"
 
   # Calendar routes
   resources :calendars do
